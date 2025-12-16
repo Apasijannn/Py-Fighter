@@ -43,7 +43,7 @@ Proyek ini mengimplementasikan konsep Pemrograman Berorientasi Objek dengan stru
 
 1. **Clone Repositori:**
    ```bash
-   git clone [https://github.com/Apasijannn/Py-Fighter.git](https://github.com/Apasijannn/Py-Fighter.git)
+   git clone https://github.com/Apasijannn/Py-Fighter.git
    cd Py-Fighter
 
 2. **Install Dependensi:**
