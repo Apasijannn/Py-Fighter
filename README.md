@@ -19,21 +19,21 @@ Di tengah ritme hidup yang cepat, Py-Fighter hadir untuk membantu pengguna melep
 * **Health Bar System:** Visualisasi HP karakter secara real-time yang berkurang sesuai serangan yang diterima.
 
 ## 🛠️ Lingkungan Pengembangan
-* **Platform:** Python 3.12+ [cite: 58]
-* **Library:** Pygame 2.6.1 [cite: 58]
+* **Platform:** Python 3.12+ 
+* **Library:** Pygame 2.6.1 
 * **IDE Disarankan:** VS Code + Python Extension
 
 ---
 
-## 📐 Arsitektur Kode (OOP Design)
-Proyek ini mengimplementasikan konsep Pemrograman Berorientasi Objek (OOP) dengan struktur sebagai berikut:
+## 📐 Arsitektur Kode 
+Proyek ini mengimplementasikan konsep Pemrograman Berorientasi Objek dengan struktur sebagai berikut:
 
-1.  **Main Class (`Game`):** Mengelola inti permainan (*game engine*), *game loop*, dan transisi antar *state*[cite: 69, 71].
+1.  **Main Class (`Game`):** Mengelola inti permainan (*game engine*), *game loop*, dan transisi antar *state*.
 2.  **UI Classes:** Menangani antarmuka pengguna seperti `Menu`, `CharacterSelect`, `ArenaSelect`, `HealthBar`, dan `VictoryScreen`.
 3.  **Game Logic:**
-    * `Fighter`: Mengatur atribut fisik (posisi, velocity), *hitbox*, animasi, dan aksi karakter[cite: 100, 101, 102].
-    * `Battle`: Menangani logika pertarungan, deteksi serangan (*collision*), dan kondisi kemenangan[cite: 97, 98, 99].
-    * `InputHandler`: Memproses input keyboard untuk kedua pemain secara simultan[cite: 103, 104, 105].
+    * `Fighter`: Mengatur atribut fisik (posisi, velocity), *hitbox*, animasi, dan aksi karakter.
+    * `Battle`: Menangani logika pertarungan, deteksi serangan (*collision*), dan kondisi kemenangan.
+    * `InputHandler`: Memproses input keyboard untuk kedua pemain secara simultan.
 
 
 
@@ -41,7 +41,15 @@ Proyek ini mengimplementasikan konsep Pemrograman Berorientasi Objek (OOP) denga
 
 ## 🕹️ Cara Menjalankan Project
 
-1. **Clone repositori:**
+1. **Clone Repositori:**
    ```bash
    git clone [https://github.com/Apasijannn/Py-Fighter.git](https://github.com/Apasijannn/Py-Fighter.git)
    cd Py-Fighter
+
+2. **Install Dependensi:**
+   ```bash 
+   pip install pygame==2.6.1
+
+3. **Jalankan Game:**
+   ```bash
+   python main.py
