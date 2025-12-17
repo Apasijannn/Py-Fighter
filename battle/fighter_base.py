@@ -1,18 +1,6 @@
 import pygame
 
 class Fighter:
-    """
-    Base class untuk semua karakter fighting game.
-    
-    Args:
-        character_name: Nama karakter (Samurai, Shinobi, Fighter, dll)
-        x: Posisi x awal
-        y: Posisi y awal
-        flip: Boolean untuk flip sprite (True = menghadap kiri)
-        data: Dictionary berisi stats karakter
-        animation_list: List of lists berisi pygame surfaces untuk animasi
-    """
-    
     def __init__(self, character_name, x, y, flip, data, animation_list):
         self.character_name = character_name
         self.scale = data['scale']
@@ -35,16 +23,6 @@ class Fighter:
         self.alive = True
     
     def move(self, screen_width, screen_height, surface, target, round_over):
-        """
-        Handle pergerakan karakter berdasarkan input keyboard.
-        
-        Args:
-            screen_width: Lebar layar game
-            screen_height: Tinggi layar game
-            surface: Surface untuk render
-            target: Fighter lawan (untuk collision detection)
-            round_over: Boolean apakah round sudah selesai
-        """
         SPEED = 10
         GRAVITY = 2
         dx = 0
@@ -55,10 +33,7 @@ class Fighter:
         key = pygame.key.get_pressed()
         
         if self.attacking == False and self.alive == True and round_over == False:
-            # P1 (flip=False, di kiri) menggunakan A/D/W dan R/T/Y
-            # P2 (flip=True, di kanan) menggunakan Arrow keys dan Numpad
-            if not self.flip:
-                # P1 controls
+            if not self.flip:  # P1
                 if key[pygame.K_a]:
                     dx = -SPEED
                     self.running = True
@@ -76,8 +51,7 @@ class Fighter:
                         self.attack_type = 2
                     if key[pygame.K_y]:
                         self.attack_type = 3
-            else:
-                # P2 controls
+            else:  # P2
                 if key[pygame.K_LEFT]:
                     dx = -SPEED
                     self.running = True
@@ -96,11 +70,8 @@ class Fighter:
                     if key[pygame.K_KP3]:
                         self.attack_type = 3
         
-        # Apply gravity
         self.vel_y += GRAVITY
         dy += self.vel_y
-        
-        # Screen boundaries
         if self.rect.left + dx < 0:
             dx = -self.rect.left
         if self.rect.right + dx > screen_width:
@@ -110,7 +81,6 @@ class Fighter:
             self.jump = False
             dy = screen_height - 110 - self.rect.bottom
         
-        # Collision detection dengan target
         future_rect = self.rect.copy()
         future_rect.x += dx
         if future_rect.colliderect(target.rect):
@@ -119,7 +89,6 @@ class Fighter:
             elif dx < 0:
                 dx = target.rect.right - self.rect.left
         
-        # Auto-flip menghadap lawan
         distance_x = abs(target.rect.centerx - self.rect.centerx)
         if distance_x > 20:
             if target.rect.centerx > self.rect.centerx:
@@ -127,26 +96,13 @@ class Fighter:
             else:
                 self.flip = True
         
-        # Update cooldown
         if self.attack_cooldown > 0:
             self.attack_cooldown -= 1
         
-        # Apply movement
         self.rect.x += dx
         self.rect.y += dy
     
     def ai_move(self, screen_width, screen_height, surface, target, round_over, ai_input):
-        """
-        Handle pergerakan karakter berdasarkan AI input.
-        
-        Args:
-            screen_width: Lebar layar game
-            screen_height: Tinggi layar game
-            surface: Surface untuk render
-            target: Fighter lawan
-            round_over: Boolean apakah round sudah selesai
-            ai_input: Dictionary dengan keys 'left', 'right', 'jump', 'attack1', 'attack2', 'attack3'
-        """
         SPEED = 10
         GRAVITY = 2
         dx = 0
@@ -173,11 +129,8 @@ class Fighter:
                 if ai_input.get('attack3', False):
                     self.attack_type = 3
         
-        # Apply gravity
         self.vel_y += GRAVITY
         dy += self.vel_y
-        
-        # Screen boundaries
         if self.rect.left + dx < 0:
             dx = -self.rect.left
         if self.rect.right + dx > screen_width:
@@ -204,19 +157,14 @@ class Fighter:
             else:
                 self.flip = True
         
-        # Update cooldown
         if self.attack_cooldown > 0:
             self.attack_cooldown -= 1
         
-        # Apply movement
         self.rect.x += dx
         self.rect.y += dy
     
     def update(self):
-        """
-        Update animasi karakter berdasarkan state saat ini.
-        Animasi: 0=idle, 1=run, 2=jump, 3=attack1, 4=attack2, 5=attack3, 6=hit, 7=death
-        """
+        # 0=idle, 1=run, 2=jump, 3-5=attack, 6=hit, 7=death
         if self.health <= 0:
             self.health = 0
             self.alive = False
@@ -256,12 +204,6 @@ class Fighter:
                     self.attack_cooldown = 20
     
     def attack(self, target):
-        """
-        Eksekusi serangan ke target.
-        
-        Args:
-            target: Fighter yang diserang
-        """
         if self.attack_cooldown == 0:
             self.attacking = True
             attacking_rect = pygame.Rect(
@@ -275,23 +217,11 @@ class Fighter:
                 target.hit = True
     
     def update_action(self, new_action):
-        """
-        Update action state dan reset frame jika action berubah.
-        
-        Args:
-            new_action: Integer index animasi baru
-        """
         if new_action != self.action:
             self.action = new_action
             self.frame_index = 0
             self.update_time = pygame.time.get_ticks()
     
     def draw(self, surface):
-        """
-        Render karakter ke surface.
-        
-        Args:
-            surface: Pygame surface untuk drawing
-        """
         img = pygame.transform.flip(self.image, self.flip, False)
         surface.blit(img, (self.rect.x - self.offset[0], self.rect.y - self.offset[1]))

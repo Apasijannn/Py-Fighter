@@ -3,28 +3,16 @@ import random
 from enum import Enum
 
 class AIState(Enum):
-    """
-    Enum untuk state FSM AI.
-    """
-    AGGRESSIVE = "aggressive"      # Menyerang aktif
-    DEFENSIVE = "defensive"        # Bertahan/menghindari
-    NEUTRAL = "neutral"            # Observasi dan posisi
-    PURSUIT = "pursuit"            # Mengejar lawan
-    RETREAT = "retreat"            # Mundur untuk recovery
-    PUNISH = "punish"              # Counter attack saat lawan vulnerable
-    PRESSURE = "pressure"          # Tekan lawan yang low health
+    AGGRESSIVE = "aggressive"
+    DEFENSIVE = "defensive"
+    NEUTRAL = "neutral"
+    PURSUIT = "pursuit"
+    RETREAT = "retreat"
+    PUNISH = "punish"
+    PRESSURE = "pressure"
 
 
 class AIController:
-    """
-    AI controller dengan FSM (Finite State Machine).
-    Menggunakan evaluasi situasi, combo system, dan strategi adaptif.
-    
-    Args:
-        fighter: Fighter object yang dikontrol AI
-        target: Fighter object lawan (player 1)
-    """
-    
     def __init__(self, fighter, target):
         self.fighter = fighter
         self.target = target
@@ -72,33 +60,27 @@ class AIController:
         self.optimal_play_chance = 0.55
     
     def get_distance(self):
-        """Hitung jarak horizontal antara AI dan target."""
         return abs(self.fighter.rect.centerx - self.target.rect.centerx)
     
     def get_health_ratio(self):
-        """Hitung rasio health AI vs target."""
         ai_health = max(self.fighter.health, 1)
         target_health = max(self.target.health, 1)
         return ai_health / target_health
     
     def is_in_attack_range(self):
-        """Check apakah target dalam jangkauan serangan."""
         return self.get_distance() <= self.attack_range
     
     def is_target_vulnerable(self):
-        """Check apakah target dalam kondisi vulnerable."""
         return (self.target.hit or 
                 (self.target.attacking and self.target.attack_cooldown > 10) or
                 self.target.jump)
     
     def is_target_threatening(self):
-        """Check apakah target sedang dalam posisi mengancam."""
         distance = self.get_distance()
         return (self.target.attacking and distance < 250) or \
                (self.target.running and distance < 200 and not self.target.attacking)
     
     def should_be_aggressive(self):
-        """Evaluasi apakah AI harus agresif."""
         health_ratio = self.get_health_ratio()
         distance = self.get_distance()
         
@@ -114,43 +96,35 @@ class AIController:
         return random.random() < (self.aggression_base + aggression_score * 0.4)
     
     def evaluate_situation(self):
-        """Evaluasi situasi pertarungan dan tentukan state yang tepat."""
         distance = self.get_distance()
         health_ratio = self.get_health_ratio()
         ai_health = self.fighter.health
         target_health = self.target.health
         
-        # PUNISH - Target vulnerable dan dalam range
         if self.is_target_vulnerable() and self.is_in_attack_range():
             if random.random() < self.prediction_skill:
                 return AIState.PUNISH
         
-        # RETREAT - AI low health
         if ai_health < 25 and health_ratio < 0.8:
             if random.random() < self.defense_reaction:
                 return AIState.RETREAT
         
-        # PRESSURE - Target low health
         if target_health < 30 and health_ratio > 0.8:
             return AIState.PRESSURE
         
-        # DEFENSIVE - Target attacking dan dekat
         if self.is_target_threatening():
             if random.random() < self.defense_reaction:
                 return AIState.DEFENSIVE
         
-        # PURSUIT - Target jauh
         if distance > self.safe_distance:
             return AIState.PURSUIT
         
-        # AGGRESSIVE - Kondisi menguntungkan
         if self.should_be_aggressive() and distance < self.attack_range:
             return AIState.AGGRESSIVE
         
         return AIState.NEUTRAL
     
     def transition_state(self, new_state):
-        """Transisi ke state baru."""
         if new_state != self.current_state:
             self.previous_state = self.current_state
             self.current_state = new_state
@@ -159,7 +133,6 @@ class AIController:
             self.combo_index = 0
     
     def behavior_aggressive(self):
-        """Behavior untuk state AGGRESSIVE."""
         distance = self.get_distance()
         
         if self.current_combo and self.combo_index < len(self.current_combo):
@@ -184,7 +157,6 @@ class AIController:
         return 'move_forward'
     
     def behavior_defensive(self):
-        """Behavior untuk state DEFENSIVE."""
         distance = self.get_distance()
         
         if self.target.attacking:
@@ -207,7 +179,6 @@ class AIController:
         return 'move_back'
     
     def behavior_neutral(self):
-        """Behavior untuk state NEUTRAL."""
         distance = self.get_distance()
         
         if distance > self.optimal_range + 30:
@@ -225,7 +196,6 @@ class AIController:
         return 'move_forward'
     
     def behavior_pursuit(self):
-        """Behavior untuk state PURSUIT."""
         distance = self.get_distance()
         
         if distance > 300 and not self.fighter.jump and random.random() < 0.15:
@@ -234,7 +204,6 @@ class AIController:
         return 'move_forward'
     
     def behavior_retreat(self):
-        """Behavior untuk state RETREAT."""
         distance = self.get_distance()
         
         if distance < 150:
@@ -249,7 +218,6 @@ class AIController:
         return 'move_back'
     
     def behavior_punish(self):
-        """Behavior untuk state PUNISH."""
         distance = self.get_distance()
         
         if self.current_combo and self.combo_index < len(self.current_combo):
@@ -267,7 +235,6 @@ class AIController:
         return 'move_forward'
     
     def behavior_pressure(self):
-        """Behavior untuk state PRESSURE."""
         distance = self.get_distance()
         
         if self.current_combo and self.combo_index < len(self.current_combo):
@@ -285,7 +252,6 @@ class AIController:
         return 'move_forward'
     
     def decide_action(self):
-        """Main decision making dengan FSM."""
         self.state_timer += 1
         self._track_combat_stats()
         
@@ -312,7 +278,6 @@ class AIController:
         return behavior_func()
     
     def _should_reevaluate(self):
-        """Check apakah perlu re-evaluate state lebih awal."""
         health_changed = abs(self.fighter.health - self.last_self_health) > 15 or \
                         abs(self.target.health - self.last_target_health) > 15
         
@@ -325,7 +290,6 @@ class AIController:
         return health_changed or threat_level_changed or opportunity
     
     def _track_combat_stats(self):
-        """Track combat statistics."""
         if self.fighter.health < self.last_self_health:
             self.hits_received += 1
         
@@ -336,7 +300,6 @@ class AIController:
         self.last_target_health = self.target.health
     
     def update(self, screen_width, screen_height, surface, round_over):
-        """Update AI dan execute actions."""
         if round_over or not self.fighter.alive:
             return
         

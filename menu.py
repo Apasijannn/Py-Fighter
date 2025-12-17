@@ -9,7 +9,6 @@ from battle.battle_system import BattleSystem
 SCREEN_WIDTH = 1400
 SCREEN_HEIGHT = 800
 
-# load display surface
 pygame.init()
 
 menu_state = "main"

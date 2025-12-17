@@ -353,7 +353,6 @@ class ArenaSelection:
         return None
     
     def run(self):
-        """Run arena selection and return selected arena name or None if cancelled"""
         clock = pygame.time.Clock()
         running = True
         selected_arena = None

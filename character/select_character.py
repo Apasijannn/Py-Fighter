@@ -201,7 +201,6 @@ class CharacterSelection:
         self.both_ready = False
     
     def load_badges(self):
-        """Load P1 and P2 badge images"""
         try:
             self.p1_badge = pygame.image.load('p1.png').convert_alpha()
             badge_width = 50
@@ -481,7 +480,6 @@ class CharacterSelection:
         return None
     
     def run(self):
-        """Run dual character selection and return (p1_char, p2_char) or None if cancelled"""
         clock = pygame.time.Clock()
         running = True
         result = None

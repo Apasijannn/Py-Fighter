@@ -17,18 +17,6 @@ ORANGE = (255, 150, 80)
 CYAN = (100, 200, 255)
 
 class ModeButton:
-    """
-    Button untuk memilih mode game.
-    
-    Args:
-        x: Posisi x button
-        y: Posisi y button
-        width: Lebar button
-        height: Tinggi button
-        text: Text yang ditampilkan
-        mode: Mode yang dipilih ('pvp' atau 'ai')
-    """
-    
     def __init__(self, x, y, width, height, text, mode):
         self.rect = pygame.Rect(x, y, width, height)
         self.text = text
@@ -38,7 +26,6 @@ class ModeButton:
         self.scale = 1.0
     
     def update(self):
-        """Update animasi hover button"""
         if self.is_hovered:
             self.hover_alpha = min(255, self.hover_alpha + 20)
             self.scale = min(1.05, self.scale + 0.01)
@@ -47,12 +34,6 @@ class ModeButton:
             self.scale = max(1.0, self.scale - 0.01)
     
     def draw(self, surface):
-        """
-        Render button ke surface.
-        
-        Args:
-            surface: Pygame surface untuk drawing
-        """
         scaled_width = int(self.rect.width * self.scale)
         scaled_height = int(self.rect.height * self.scale)
         scaled_rect = pygame.Rect(
@@ -81,38 +62,14 @@ class ModeButton:
         surface.blit(text_surf, text_rect)
     
     def check_hover(self, mouse_pos):
-        """
-        Check apakah mouse hover di button.
-        
-        Args:
-            mouse_pos: Tuple (x, y) posisi mouse
-        
-        Returns:
-            Boolean True jika hover
-        """
         self.is_hovered = self.rect.collidepoint(mouse_pos)
         return self.is_hovered
     
     def is_clicked(self, mouse_pos):
-        """
-        Check apakah button diklik.
-        
-        Args:
-            mouse_pos: Tuple (x, y) posisi mouse
-        
-        Returns:
-            Boolean True jika diklik
-        """
         return self.rect.collidepoint(mouse_pos)
 
 
 class ModeSelection:
-    """
-    Screen untuk memilih mode game: PvP atau vs AI.
-    
-    Returns dari run(): 'pvp', 'ai', atau None jika cancel
-    """
-    
     def __init__(self):
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption("Select Game Mode")
@@ -133,7 +90,6 @@ class ModeSelection:
         ]
     
     def load_background(self):
-        """Load background image atau fallback ke gradient"""
         try:
             self.background = pygame.image.load('background.png').convert()
             self.background = pygame.transform.scale(self.background, (SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -141,13 +97,11 @@ class ModeSelection:
             self.background = None
     
     def update(self):
-        """Update semua animasi"""
         self.time += 1
         for button in self.buttons:
             button.update()
     
     def draw_background(self):
-        """Render background dengan overlay"""
         if self.background:
             self.screen.blit(self.background, (0, 0))
             overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
@@ -162,7 +116,6 @@ class ModeSelection:
                 pygame.draw.line(self.screen, (r, g, b), (0, y), (SCREEN_WIDTH, y))
     
     def draw_header(self):
-        """Render header dengan title"""
         header_surf = pygame.Surface((SCREEN_WIDTH, 200), pygame.SRCALPHA)
         pygame.draw.rect(header_surf, (10, 25, 50, 150), header_surf.get_rect())
         self.screen.blit(header_surf, (0, 0))
@@ -187,7 +140,6 @@ class ModeSelection:
                            (line_x, 130 + offset), (line_x + line_width, 130 + offset), 2 + i)
     
     def draw_footer(self):
-        """Render footer dengan controls"""
         footer_surf = pygame.Surface((SCREEN_WIDTH, 70), pygame.SRCALPHA)
         pygame.draw.rect(footer_surf, (10, 25, 50, 180), footer_surf.get_rect())
         self.screen.blit(footer_surf, (0, SCREEN_HEIGHT - 70))
@@ -216,7 +168,6 @@ class ModeSelection:
             self.screen.blit(action_text, action_rect)
     
     def draw(self):
-        """Render semua elemen UI"""
         self.draw_background()
         self.draw_header()
         
@@ -226,37 +177,16 @@ class ModeSelection:
         self.draw_footer()
     
     def handle_hover(self, mouse_pos):
-        """
-        Handle mouse hover pada buttons.
-        
-        Args:
-            mouse_pos: Tuple (x, y) posisi mouse
-        """
         for button in self.buttons:
             button.check_hover(mouse_pos)
     
     def handle_click(self, mouse_pos):
-        """
-        Handle mouse click pada buttons.
-        
-        Args:
-            mouse_pos: Tuple (x, y) posisi mouse
-        
-        Returns:
-            String mode ('pvp' atau 'ai') jika button diklik, None jika tidak
-        """
         for button in self.buttons:
             if button.is_clicked(mouse_pos):
                 return button.mode
         return None
     
     def run(self):
-        """
-        Run mode selection screen.
-        
-        Returns:
-            String 'pvp' untuk PvP mode, 'ai' untuk vs AI mode, atau None jika cancel
-        """
         clock = pygame.time.Clock()
         running = True
         selected_mode = None

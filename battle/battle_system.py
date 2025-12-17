@@ -68,16 +68,6 @@ CHARACTER_DATA = {
 
 
 class BattleSystem:
-    """
-    Main battle system untuk fighting game.
-    
-    Args:
-        char_p1: String nama karakter player 1
-        char_p2: String nama karakter player 2
-        arena: String nama arena
-        mode: String mode game ('pvp' atau 'ai')
-    """
-    
     def __init__(self, char_p1, char_p2, arena, mode='pvp'):
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption("Battle Arena")
@@ -104,15 +94,6 @@ class BattleSystem:
         self.winner = None
     
     def load_arena(self, arena_name):
-        """
-        Load arena background image.
-        
-        Args:
-            arena_name: String nama arena
-        
-        Returns:
-            Pygame surface atau None jika gagal load
-        """
         arena_paths = {
             'Keputih': 'arena/assets/Keputih.png',
             'San Antonio': 'arena/assets/SanAntonio.png',
@@ -128,18 +109,6 @@ class BattleSystem:
             return None
     
     def create_fighter(self, char_name, x, y, flip):
-        """
-        Create fighter instance berdasarkan character name.
-        
-        Args:
-            char_name: String nama karakter
-            x: Posisi x awal
-            y: Posisi y awal
-            flip: Boolean flip sprite
-        
-        Returns:
-            Fighter instance
-        """
         char_data = CHARACTER_DATA.get(char_name, CHARACTER_DATA['Samurai'])
         
         animation_list = []
@@ -165,22 +134,12 @@ class BattleSystem:
         return fighter
     
     def draw_bg(self):
-        """Render background arena"""
         if self.bg_image:
             self.screen.blit(self.bg_image, (0, 0))
         else:
             self.screen.fill((50, 50, 50))
     
     def draw_health_bar(self, health, x, y, color):
-        """
-        Render health bar.
-        
-        Args:
-            health: Integer nilai health (0-100)
-            x: Posisi x health bar
-            y: Posisi y health bar
-            color: Tuple RGB color health bar
-        """
         ratio = health / 100
         
         pygame.draw.rect(self.screen, (50, 50, 50), (x - 2, y - 2, 404, 34))
@@ -189,21 +148,10 @@ class BattleSystem:
         pygame.draw.rect(self.screen, (0, 0, 0), (x, y, 400, 30), 3)
     
     def draw_text(self, text, font, color, x, y):
-        """
-        Render text ke screen.
-        
-        Args:
-            text: String text yang akan dirender
-            font: Pygame font object
-            color: Tuple RGB color
-            x: Posisi x
-            y: Posisi y
-        """
         img = font.render(text, True, color)
         self.screen.blit(img, (x, y))
     
     def draw_ui(self):
-        """Render semua UI elements (health bars, names, timer)"""
         health_color_p1 = CYAN if self.fighter_1.health > 50 else (RED if self.fighter_1.health < 25 else YELLOW)
         health_color_p2 = ORANGE if self.fighter_2.health > 50 else (RED if self.fighter_2.health < 25 else YELLOW)
         
@@ -222,12 +170,6 @@ class BattleSystem:
         self.draw_text(controls_p2, font_small, (200, 200, 200), SCREEN_WIDTH - 400, SCREEN_HEIGHT - 30)
     
     def check_round_over(self):
-        """
-        Check apakah round sudah selesai.
-        
-        Returns:
-            Boolean True jika round over
-        """
         if not self.round_over:
             if not self.fighter_1.alive:
                 self.round_over = True
@@ -241,7 +183,6 @@ class BattleSystem:
         return self.round_over
     
     def draw_round_over_screen(self):
-        """Render victory screen"""
         overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
         overlay.fill((0, 0, 0, 150))
         self.screen.blit(overlay, (0, 0))
@@ -266,12 +207,6 @@ class BattleSystem:
         self.screen.blit(instruction, inst_rect)
     
     def draw_intro_countdown(self):
-        """
-        Render countdown intro sebelum battle dimulai.
-        
-        Returns:
-            Boolean True jika countdown masih berjalan
-        """
         if self.intro_count > 0:
             overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
             overlay.fill((0, 0, 0, 100))
@@ -294,12 +229,6 @@ class BattleSystem:
         return False
     
     def run(self):
-        """
-        Main game loop untuk battle.
-        
-        Returns:
-            Boolean True jika exit to menu, False jika quit game
-        """
         running = True
         
         while running:
