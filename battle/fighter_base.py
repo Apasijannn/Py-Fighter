@@ -1,5 +1,4 @@
 import pygame
-import os
 
 class Fighter:
     """
@@ -34,14 +33,10 @@ class Fighter:
         self.hit = False
         self.health = 100
         self.alive = True
-        self.glitch_effect = False
-        self.glitch_timer = 0
-        self.glitch_offset_x = 0
-        self.glitch_offset_y = 0
     
     def move(self, screen_width, screen_height, surface, target, round_over):
         """
-        Handle pergerakan karakter berdasarkan input.
+        Handle pergerakan karakter berdasarkan input keyboard.
         
         Args:
             screen_width: Lebar layar game
@@ -101,9 +96,11 @@ class Fighter:
                     if key[pygame.K_KP3]:
                         self.attack_type = 3
         
+        # Apply gravity
         self.vel_y += GRAVITY
         dy += self.vel_y
         
+        # Screen boundaries
         if self.rect.left + dx < 0:
             dx = -self.rect.left
         if self.rect.right + dx > screen_width:
@@ -113,46 +110,107 @@ class Fighter:
             self.jump = False
             dy = screen_height - 110 - self.rect.bottom
         
-        # Collision detection dengan target (mencegah overlap/tumpang tindih)
+        # Collision detection dengan target
         future_rect = self.rect.copy()
         future_rect.x += dx
         if future_rect.colliderect(target.rect):
-            # Jika akan bertabrakan, hentikan pergerakan horizontal
-            if dx > 0:  # Bergerak ke kanan
+            if dx > 0:
                 dx = target.rect.left - self.rect.right
-            elif dx < 0:  # Bergerak ke kiri
+            elif dx < 0:
                 dx = target.rect.right - self.rect.left
         
-        # Flip hanya jika jarak cukup jauh (threshold 20 pixel) untuk mencegah glitch
+        # Auto-flip menghadap lawan
         distance_x = abs(target.rect.centerx - self.rect.centerx)
-        if distance_x > 20:  # Hanya flip jika jarak lebih dari 20 pixel
+        if distance_x > 20:
             if target.rect.centerx > self.rect.centerx:
                 self.flip = False
             else:
                 self.flip = True
         
+        # Update cooldown
         if self.attack_cooldown > 0:
             self.attack_cooldown -= 1
         
-        if self.glitch_timer > 0:
-            self.glitch_timer -= 1
-            if self.glitch_timer == 0:
-                self.glitch_effect = False
-                self.glitch_offset_x = 0
-                self.glitch_offset_y = 0
-        
+        # Apply movement
         self.rect.x += dx
         self.rect.y += dy
     
-    def trigger_glitch(self):
+    def ai_move(self, screen_width, screen_height, surface, target, round_over, ai_input):
         """
-        Trigger glitch effect saat jump.
+        Handle pergerakan karakter berdasarkan AI input.
+        
+        Args:
+            screen_width: Lebar layar game
+            screen_height: Tinggi layar game
+            surface: Surface untuk render
+            target: Fighter lawan
+            round_over: Boolean apakah round sudah selesai
+            ai_input: Dictionary dengan keys 'left', 'right', 'jump', 'attack1', 'attack2', 'attack3'
         """
-        import random
-        self.glitch_effect = True
-        self.glitch_timer = 10
-        self.glitch_offset_x = random.randint(-5, 5)
-        self.glitch_offset_y = random.randint(-5, 5)
+        SPEED = 10
+        GRAVITY = 2
+        dx = 0
+        dy = 0
+        self.running = False
+        self.attack_type = 0
+        
+        if self.attacking == False and self.alive == True and round_over == False:
+            if ai_input.get('left', False):
+                dx = -SPEED
+                self.running = True
+            if ai_input.get('right', False):
+                dx = SPEED
+                self.running = True
+            if ai_input.get('jump', False) and self.jump == False:
+                self.vel_y = -30
+                self.jump = True
+            if ai_input.get('attack1', False) or ai_input.get('attack2', False) or ai_input.get('attack3', False):
+                self.attack(target)
+                if ai_input.get('attack1', False):
+                    self.attack_type = 1
+                if ai_input.get('attack2', False):
+                    self.attack_type = 2
+                if ai_input.get('attack3', False):
+                    self.attack_type = 3
+        
+        # Apply gravity
+        self.vel_y += GRAVITY
+        dy += self.vel_y
+        
+        # Screen boundaries
+        if self.rect.left + dx < 0:
+            dx = -self.rect.left
+        if self.rect.right + dx > screen_width:
+            dx = screen_width - self.rect.right
+        if self.rect.bottom + dy > screen_height - 110:
+            self.vel_y = 0
+            self.jump = False
+            dy = screen_height - 110 - self.rect.bottom
+        
+        # Collision detection dengan target
+        future_rect = self.rect.copy()
+        future_rect.x += dx
+        if future_rect.colliderect(target.rect):
+            if dx > 0:
+                dx = target.rect.left - self.rect.right
+            elif dx < 0:
+                dx = target.rect.right - self.rect.left
+        
+        # Auto-flip menghadap lawan
+        distance_x = abs(target.rect.centerx - self.rect.centerx)
+        if distance_x > 20:
+            if target.rect.centerx > self.rect.centerx:
+                self.flip = False
+            else:
+                self.flip = True
+        
+        # Update cooldown
+        if self.attack_cooldown > 0:
+            self.attack_cooldown -= 1
+        
+        # Apply movement
+        self.rect.x += dx
+        self.rect.y += dy
     
     def update(self):
         """
@@ -206,7 +264,12 @@ class Fighter:
         """
         if self.attack_cooldown == 0:
             self.attacking = True
-            attacking_rect = pygame.Rect(self.rect.centerx - (2 * self.rect.width * self.flip), self.rect.y, 2 * self.rect.width, self.rect.height)
+            attacking_rect = pygame.Rect(
+                self.rect.centerx - (2 * self.rect.width * self.flip), 
+                self.rect.y, 
+                2 * self.rect.width, 
+                self.rect.height
+            )
             if attacking_rect.colliderect(target.rect):
                 target.health -= 10
                 target.hit = True
@@ -232,83 +295,3 @@ class Fighter:
         """
         img = pygame.transform.flip(self.image, self.flip, False)
         surface.blit(img, (self.rect.x - self.offset[0], self.rect.y - self.offset[1]))
-    
-    def ai_move(self, screen_width, screen_height, surface, target, round_over, ai_input):
-        """
-        Handle pergerakan karakter berdasarkan AI input (tanpa keyboard).
-        
-        Args:
-            screen_width: Lebar layar game
-            screen_height: Tinggi layar game
-            surface: Surface untuk render
-            target: Fighter lawan
-            round_over: Boolean apakah round sudah selesai
-            ai_input: Dictionary dengan keys 'left', 'right', 'jump', 'attack1', 'attack2', 'attack3'
-        """
-        SPEED = 10
-        GRAVITY = 2
-        dx = 0
-        dy = 0
-        self.running = False
-        self.attack_type = 0
-        
-        if self.attacking == False and self.alive == True and round_over == False:
-            if ai_input.get('left', False):
-                dx = -SPEED
-                self.running = True
-            if ai_input.get('right', False):
-                dx = SPEED
-                self.running = True
-            if ai_input.get('jump', False) and self.jump == False:
-                self.vel_y = -30
-                self.jump = True
-            if ai_input.get('attack1', False) or ai_input.get('attack2', False) or ai_input.get('attack3', False):
-                self.attack(target)
-                if ai_input.get('attack1', False):
-                    self.attack_type = 1
-                if ai_input.get('attack2', False):
-                    self.attack_type = 2
-                if ai_input.get('attack3', False):
-                    self.attack_type = 3
-        
-        self.vel_y += GRAVITY
-        dy += self.vel_y
-        
-        if self.rect.left + dx < 0:
-            dx = -self.rect.left
-        if self.rect.right + dx > screen_width:
-            dx = screen_width - self.rect.right
-        if self.rect.bottom + dy > screen_height - 110:
-            self.vel_y = 0
-            self.jump = False
-            dy = screen_height - 110 - self.rect.bottom
-        
-        # Collision detection dengan target
-        future_rect = self.rect.copy()
-        future_rect.x += dx
-        if future_rect.colliderect(target.rect):
-            if dx > 0:
-                dx = target.rect.left - self.rect.right
-            elif dx < 0:
-                dx = target.rect.right - self.rect.left
-        
-        # Flip berdasarkan posisi target
-        distance_x = abs(target.rect.centerx - self.rect.centerx)
-        if distance_x > 20:
-            if target.rect.centerx > self.rect.centerx:
-                self.flip = False
-            else:
-                self.flip = True
-        
-        if self.attack_cooldown > 0:
-            self.attack_cooldown -= 1
-        
-        if self.glitch_timer > 0:
-            self.glitch_timer -= 1
-            if self.glitch_timer == 0:
-                self.glitch_effect = False
-                self.glitch_offset_x = 0
-                self.glitch_offset_y = 0
-        
-        self.rect.x += dx
-        self.rect.y += dy

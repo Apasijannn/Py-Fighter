@@ -95,7 +95,7 @@ class BattleSystem:
         
         self.ai_controller = None
         if mode == 'ai':
-            self.ai_controller = AIController(self.fighter_2, self.fighter_1, difficulty='medium')
+            self.ai_controller = AIController(self.fighter_2, self.fighter_1)
         
         self.intro_count = 3
         self.last_count_update = pygame.time.get_ticks()
