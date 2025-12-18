@@ -5,8 +5,8 @@ DIGUNAKAN OLEH: menu.py (memanggil BattleSystem untuk mulai battle)
 MENGGUNAKAN: 
     - fighter_base.py (class Fighter)
     - ai_controller.py (class AIController)
-    - character/assets/* (sprite karakter)
-    - arena/assets/* (background arena)
+    - assets/character/* (sprite karakter)
+    - assets/arena/* (background arena)
 
 ALUR PROGRAM:
 1. menu.py -> character selection -> arena selection -> BattleSystem()
@@ -45,7 +45,7 @@ ORANGE = (255, 150, 80)     # Warna P2/AI
 # Files: Idle, Run, Jump, Attack1, Attack2, Attack3, Hurt, Dead
 CHARACTERS = {
     'Samurai': (
-        'character/assets/Samurai',     # Folder sprite
+        'assets/character/Samurai',     # Folder sprite
         2.5,                            # Scale sprite
         [40, 30],                       # Offset [x, y]
         ['Idle.png', 'Run.png', 'Jump.png', 'Attack_1.png', 
@@ -53,31 +53,31 @@ CHARACTERS = {
         [6, 8, 12, 6, 4, 3, 2, 3]       # Jumlah frame tiap animasi
     ),
     'Shinobi': (
-        'character/assets/Shinobi', 2.5, [40, 30],
+        'assets/character/Shinobi', 2.5, [40, 30],
         ['Idle.png', 'Run.png', 'Jump.png', 'Attack_1.png', 
          'Attack_2.png', 'Attack_3.png', 'Hurt.png', 'Dead.png'],
         [6, 8, 12, 5, 3, 4, 2, 4]
     ),
     'Fighter': (
-        'character/assets/Fighter', 2.5, [40, 30],
+        'assets/character/Fighter', 2.5, [40, 30],
         ['Idle.png', 'Run.png', 'Jump.png', 'Attack_1.png', 
          'Attack_2.png', 'Attack_3.png', 'Hurt.png', 'Dead.png'],
         [6, 8, 10, 4, 3, 4, 3, 3]
     ),
     'Converted Vampire': (
-        'character/assets/Vampire1', 2.0, [60, 50],
+        'assets/character/Vampire1', 2.0, [60, 50],
         ['Idle.png', 'Run.png', 'Jump.png', 'Attack_1.png', 
          'Attack_2.png', 'Attack_3.png', 'Hurt.png', 'Dead.png'],
         [5, 8, 7, 5, 3, 4, 1, 8]
     ),
     'Countess Vampire': (
-        'character/assets/Vampire2', 2.0, [60, 50],
+        'assets/character/Vampire2', 2.0, [60, 50],
         ['Idle.png', 'Run.png', 'Jump.png', 'Attack_1.png', 
          'Attack_2.png', 'Attack_3.png', 'Hurt.png', 'Dead.png'],
         [5, 6, 6, 6, 3, 1, 2, 8]
     ),
     'Vampire Girl': (
-        'character/assets/Vampire3', 2.0, [60, 50],
+        'assets/character/Vampire3', 2.0, [60, 50],
         ['Idle.png', 'Run.png', 'Jump.png', 'Attack_1.png', 
          'Attack_2.png', 'Attack_3.png', 'Hurt.png', 'Dead.png'],
         [5, 6, 6, 5, 4, 2, 2, 10]
@@ -88,10 +88,10 @@ CHARACTERS = {
 # === DATA ARENA ===
 # Format: 'Nama Arena': 'path/to/background.png'
 ARENAS = {
-    'Keputih': 'arena/assets/Keputih.png',
-    'San Antonio': 'arena/assets/SanAntonio.png',
-    'Taman Apsari': 'arena/assets/TamanApsari.png',
-    'Tunjungan': 'arena/assets/Tunjungan.png'
+    'Keputih': 'assets/arena/Keputih.png',
+    'San Antonio': 'assets/arena/SanAntonio.png',
+    'Taman Apsari': 'assets/arena/TamanApsari.png',
+    'Tunjungan': 'assets/arena/Tunjungan.png'
 }
 
 
@@ -133,9 +133,9 @@ class BattleSystem:
         self.p2_name = char_p2
         
         # === LOAD BACKGROUND ===
-        # Menggunakan file dari arena/assets/
+        # Menggunakan file dari assets/arena/
         try:
-            bg_path = ARENAS.get(arena, 'arena/assets/Keputih.png')
+            bg_path = ARENAS.get(arena, 'assets/arena/Keputih.png')
             self.bg = pygame.transform.scale(
                 pygame.image.load(bg_path).convert(),
                 (SCREEN_W, SCREEN_H)
