@@ -1,10 +1,14 @@
 import pygame 
 import sys
+import os
 from pygame import mixer
 from character.select_character import CharacterSelection
 from arena.select_arena import ArenaSelection
 from battle.mode_selection import ModeSelection
 from battle.battle_system import BattleSystem
+
+# Base directory untuk assets
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 SCREEN_WIDTH = 1400
 SCREEN_HEIGHT = 800
@@ -16,24 +20,24 @@ menu_state = "main"
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Game Menu")
-background = pygame.image.load('assets/menu/background.png').convert_alpha()
+background = pygame.image.load(os.path.join(BASE_DIR, 'assets/menu/background.png')).convert_alpha()
 
 # load logo image
-logo = pygame.image.load('assets/menu/logo.png').convert_alpha()
+logo = pygame.image.load(os.path.join(BASE_DIR, 'assets/menu/logo.png')).convert_alpha()
 # logo scaling
 logo = pygame.transform.scale(logo, (int(logo.get_width() * 0.9), int(logo.get_height() * 0.9)))
-icon = pygame.image.load('assets/menu/icon.png').convert_alpha()
+icon = pygame.image.load(os.path.join(BASE_DIR, 'assets/menu/icon.png')).convert_alpha()
 pygame.display.set_icon(icon)
 
 # # background music
-mixer.music.load('assets/audio/menu.mp3')
+mixer.music.load(os.path.join(BASE_DIR, 'assets/audio/menu.mp3'))
 mixer.music.play(-1)
 mixer.music.set_volume(0.05)
 mixer.music.set_pos(2.4)
 
 # load button images
-play_image = pygame.image.load('assets/menu/play.png').convert_alpha()
-exit_image = pygame.image.load('assets/menu/exit.png').convert_alpha()
+play_image = pygame.image.load(os.path.join(BASE_DIR, 'assets/menu/play.png')).convert_alpha()
+exit_image = pygame.image.load(os.path.join(BASE_DIR, 'assets/menu/exit.png')).convert_alpha()
 
 #button class
 class Button():
@@ -76,7 +80,7 @@ while run:
     if menu_state == "main":
         if play_button.draw(screen):
             
-            mixer.music.load('assets/audio/menu.mp3')
+            mixer.music.load(os.path.join(BASE_DIR, 'assets/audio/menu.mp3'))
             mixer.music.play(-1)
             mixer.music.set_volume(0.05)
             mixer.music.set_pos(2.4)
@@ -98,7 +102,7 @@ while run:
                     if selected_arena:
                         
                         battle = BattleSystem(selected_char_p1, selected_char_p2, selected_arena, selected_mode)
-                        mixer.music.load('assets/audio/battle.mp3')
+                        mixer.music.load(os.path.join(BASE_DIR, 'assets/audio/battle.mp3'))
                         mixer.music.play(-1)
                         mixer.music.set_volume(0.1)
                         mixer.music.set_pos(2)

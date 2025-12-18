@@ -20,6 +20,10 @@ import pygame
 import sys
 import math
 import random
+import os
+
+# Base directory untuk assets (parent folder dari character)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # === KONSTANTA ===
 SCREEN_WIDTH = 1400
@@ -37,12 +41,12 @@ P2_COLOR = ORANGE
 
 # === DATA KARAKTER ===
 CHARACTERS = [
-    {"name": "Samurai", "path": "assets/character/Samurai/Idle.png", "frames": 6},
-    {"name": "Shinobi", "path": "assets/character/Shinobi/Idle.png", "frames": 6},
-    {"name": "Fighter", "path": "assets/character/Fighter/Idle.png", "frames": 6},
-    {"name": "Converted Vampire", "path": "assets/character/Vampire1/Idle.png", "frames": 5},
-    {"name": "Countess Vampire", "path": "assets/character/Vampire2/Idle.png", "frames": 5},
-    {"name": "Vampire Girl", "path": "assets/character/Vampire3/Idle.png", "frames": 5},
+    {"name": "Samurai", "path": os.path.join(BASE_DIR, "assets/character/Samurai/Idle.png"), "frames": 6},
+    {"name": "Shinobi", "path": os.path.join(BASE_DIR, "assets/character/Shinobi/Idle.png"), "frames": 6},
+    {"name": "Fighter", "path": os.path.join(BASE_DIR, "assets/character/Fighter/Idle.png"), "frames": 6},
+    {"name": "Converted Vampire", "path": os.path.join(BASE_DIR, "assets/character/Vampire1/Idle.png"), "frames": 5},
+    {"name": "Countess Vampire", "path": os.path.join(BASE_DIR, "assets/character/Vampire2/Idle.png"), "frames": 5},
+    {"name": "Vampire Girl", "path": os.path.join(BASE_DIR, "assets/character/Vampire3/Idle.png"), "frames": 5},
 ]
 
 class CharacterSlot:
@@ -181,10 +185,10 @@ class CharacterSelection:
     def load_badges(self):
         """Memuat ikon badge (P1, P2, AI) yang akan diletakkan di atas slot terpilih."""
         try:
-            self.p1_badge = pygame.transform.scale(pygame.image.load('assets/select_char/p1.png').convert_alpha(), (50, 50))
+            self.p1_badge = pygame.transform.scale(pygame.image.load(os.path.join(BASE_DIR, 'assets/select_char/p1.png')).convert_alpha(), (50, 50))
         except: self.p1_badge = None
         
-        badge_p2_path = 'assets/select_char/ai.png' if self.game_mode == 'ai' else 'assets/select_char/p2.png'
+        badge_p2_path = os.path.join(BASE_DIR, 'assets/select_char/ai.png') if self.game_mode == 'ai' else os.path.join(BASE_DIR, 'assets/select_char/p2.png')
         try:
             self.p2_badge = pygame.transform.scale(pygame.image.load(badge_p2_path).convert_alpha(), (50, 50))
         except: self.p2_badge = None
@@ -192,7 +196,7 @@ class CharacterSelection:
     def load_background(self):
         """Memuat gambar background menu."""
         try:
-            self.background = pygame.transform.scale(pygame.image.load('assets/menu/background.png').convert(), (SCREEN_WIDTH, SCREEN_HEIGHT))
+            self.background = pygame.transform.scale(pygame.image.load(os.path.join(BASE_DIR, 'assets/menu/background.png')).convert(), (SCREEN_WIDTH, SCREEN_HEIGHT))
         except: self.background = None
 
     def load_characters(self):

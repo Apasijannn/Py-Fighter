@@ -19,6 +19,10 @@ OOP CONCEPTS:
 import pygame
 import sys
 import math
+import os
+
+# Base directory untuk assets (parent folder dari arena)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # === KONSTANTA ===
 SCREEN_WIDTH = 1400
@@ -33,10 +37,10 @@ CYAN = (100, 200, 255)
 
 # === DATA ARENA ===
 ARENAS = [
-    {"name": "Keputih", "path": "assets/arena/Keputih.png"},
-    {"name": "San Antonio", "path": "assets/arena/SanAntonio.png"},
-    {"name": "Taman Apsari", "path": "assets/arena/TamanApsari.png"},
-    {"name": "Tunjungan", "path": "assets/arena/Tunjungan.png"},
+    {"name": "Keputih", "path": os.path.join(BASE_DIR, "assets/arena/Keputih.png")},
+    {"name": "San Antonio", "path": os.path.join(BASE_DIR, "assets/arena/SanAntonio.png")},
+    {"name": "Taman Apsari", "path": os.path.join(BASE_DIR, "assets/arena/TamanApsari.png")},
+    {"name": "Tunjungan", "path": os.path.join(BASE_DIR, "assets/arena/Tunjungan.png")},
 ]
 
 class ArenaSlot:
@@ -217,7 +221,7 @@ class ArenaSelection:
     def load_background(self):
         """Muat gambar background utama"""
         try:
-            self.background = pygame.image.load('assets/menu/background.png').convert()
+            self.background = pygame.image.load(os.path.join(BASE_DIR, 'assets/menu/background.png')).convert()
             self.background = pygame.transform.scale(self.background, (SCREEN_WIDTH, SCREEN_HEIGHT))
         except:
             self.background = None

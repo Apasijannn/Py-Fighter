@@ -25,9 +25,12 @@ OOP CONCEPTS:
 """
 import pygame
 import sys
+import os
 from battle.fighter_base import Fighter       # Class karakter
 from battle.ai_controller import AIController # Class AI
 
+# Base directory untuk assets (parent folder dari battle)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SCREEN_W, SCREEN_H = 1400, 800  # Ukuran layar
 FPS = 60                         # Frame per second
@@ -45,7 +48,7 @@ ORANGE = (255, 150, 80)     # Warna P2/AI
 # Files: Idle, Run, Jump, Attack1, Attack2, Attack3, Hurt, Dead
 CHARACTERS = {
     'Samurai': (
-        'assets/character/Samurai',     # Folder sprite
+        os.path.join(BASE_DIR, 'assets/character/Samurai'),     # Folder sprite
         2.5,                            # Scale sprite
         [40, 30],                       # Offset [x, y]
         ['Idle.png', 'Run.png', 'Jump.png', 'Attack_1.png', 
@@ -53,31 +56,31 @@ CHARACTERS = {
         [6, 8, 12, 6, 4, 3, 2, 3]       # Jumlah frame tiap animasi
     ),
     'Shinobi': (
-        'assets/character/Shinobi', 2.5, [40, 30],
+        os.path.join(BASE_DIR, 'assets/character/Shinobi'), 2.5, [40, 30],
         ['Idle.png', 'Run.png', 'Jump.png', 'Attack_1.png', 
          'Attack_2.png', 'Attack_3.png', 'Hurt.png', 'Dead.png'],
         [6, 8, 12, 5, 3, 4, 2, 4]
     ),
     'Fighter': (
-        'assets/character/Fighter', 2.5, [40, 30],
+        os.path.join(BASE_DIR, 'assets/character/Fighter'), 2.5, [40, 30],
         ['Idle.png', 'Run.png', 'Jump.png', 'Attack_1.png', 
          'Attack_2.png', 'Attack_3.png', 'Hurt.png', 'Dead.png'],
         [6, 8, 10, 4, 3, 4, 3, 3]
     ),
     'Converted Vampire': (
-        'assets/character/Vampire1', 2.0, [60, 50],
+        os.path.join(BASE_DIR, 'assets/character/Vampire1'), 2.0, [60, 50],
         ['Idle.png', 'Run.png', 'Jump.png', 'Attack_1.png', 
          'Attack_2.png', 'Attack_3.png', 'Hurt.png', 'Dead.png'],
         [5, 8, 7, 5, 3, 4, 1, 8]
     ),
     'Countess Vampire': (
-        'assets/character/Vampire2', 2.0, [60, 50],
+        os.path.join(BASE_DIR, 'assets/character/Vampire2'), 2.0, [60, 50],
         ['Idle.png', 'Run.png', 'Jump.png', 'Attack_1.png', 
          'Attack_2.png', 'Attack_3.png', 'Hurt.png', 'Dead.png'],
         [5, 6, 6, 6, 3, 1, 2, 8]
     ),
     'Vampire Girl': (
-        'assets/character/Vampire3', 2.0, [60, 50],
+        os.path.join(BASE_DIR, 'assets/character/Vampire3'), 2.0, [60, 50],
         ['Idle.png', 'Run.png', 'Jump.png', 'Attack_1.png', 
          'Attack_2.png', 'Attack_3.png', 'Hurt.png', 'Dead.png'],
         [5, 6, 6, 5, 4, 2, 2, 10]
@@ -88,10 +91,10 @@ CHARACTERS = {
 # === DATA ARENA ===
 # Format: 'Nama Arena': 'path/to/background.png'
 ARENAS = {
-    'Keputih': 'assets/arena/Keputih.png',
-    'San Antonio': 'assets/arena/SanAntonio.png',
-    'Taman Apsari': 'assets/arena/TamanApsari.png',
-    'Tunjungan': 'assets/arena/Tunjungan.png'
+    'Keputih': os.path.join(BASE_DIR, 'assets/arena/Keputih.png'),
+    'San Antonio': os.path.join(BASE_DIR, 'assets/arena/SanAntonio.png'),
+    'Taman Apsari': os.path.join(BASE_DIR, 'assets/arena/TamanApsari.png'),
+    'Tunjungan': os.path.join(BASE_DIR, 'assets/arena/Tunjungan.png')
 }
 
 
@@ -135,7 +138,7 @@ class BattleSystem:
         # === LOAD BACKGROUND ===
         # Menggunakan file dari assets/arena/
         try:
-            bg_path = ARENAS.get(arena, 'assets/arena/Keputih.png')
+            bg_path = ARENAS.get(arena, os.path.join(BASE_DIR, 'assets/arena/Keputih.png'))
             self.bg = pygame.transform.scale(
                 pygame.image.load(bg_path).convert(),
                 (SCREEN_W, SCREEN_H)

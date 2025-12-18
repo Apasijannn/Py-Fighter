@@ -20,6 +20,10 @@ import pygame
 import sys
 import random
 import math
+import os
+
+# Base directory untuk assets (parent folder dari battle)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # === KONSTANTA ===
 SCREEN_W, SCREEN_H = 1400, 800
@@ -203,7 +207,7 @@ class ModeSelection:
         # === LOAD BACKGROUND ===
         try:
             self.bg = pygame.transform.scale(
-                pygame.image.load('assets/menu/background.png').convert(), 
+                pygame.image.load(os.path.join(BASE_DIR, 'assets/menu/background.png')).convert(), 
                 (SCREEN_W, SCREEN_H)
             )
         except:
@@ -216,9 +220,9 @@ class ModeSelection:
         # Menggunakan koordinat dan ukuran dari kode keduamu yang lebih besar
         self.buttons = [
             ModeButton(cx - 275, 250, 550, 150, "PLAYER VS PLAYER", "pvp", 
-                       image_paths=['assets/select_char/p1.png', 'assets/select_char/p2.png']),
+                       image_paths=[os.path.join(BASE_DIR, 'assets/select_char/p1.png'), os.path.join(BASE_DIR, 'assets/select_char/p2.png')]),
             ModeButton(cx - 275, 480, 550, 150, "PLAYER VS AI", "ai", 
-                       image_paths=['assets/select_char/p1.png', 'assets/select_char/ai.png'])
+                       image_paths=[os.path.join(BASE_DIR, 'assets/select_char/p1.png'), os.path.join(BASE_DIR, 'assets/select_char/ai.png')])
         ]
         
         # === FONTS ===
