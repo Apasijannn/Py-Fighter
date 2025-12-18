@@ -22,7 +22,7 @@ ORANGE = (255, 150, 80)
 CYAN = (100, 200, 255)
 NIGHT_BLUE = (30, 60, 120)
 
-# Daftar arena - gunakan forward slash
+# Daftar arena
 ARENAS = [
     {"name": "Keputih", "path": "arena/assets/Keputih.png"},
     {"name": "San Antonio", "path": "arena/assets/SanAntonio.png"},

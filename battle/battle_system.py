@@ -1,276 +1,400 @@
+"""
+FILE: battle_system.py
+DESKRIPSI: System utama pertarungan - mengelola game loop dan fighters
+DIGUNAKAN OLEH: menu.py (memanggil BattleSystem untuk mulai battle)
+MENGGUNAKAN: 
+    - fighter_base.py (class Fighter)
+    - ai_controller.py (class AIController)
+    - character/assets/* (sprite karakter)
+    - arena/assets/* (background arena)
+
+ALUR PROGRAM:
+1. menu.py -> character selection -> arena selection -> BattleSystem()
+2. BattleSystem.__init__() membuat 2 Fighter dan AIController (jika mode AI)
+3. BattleSystem.run() menjalankan game loop:
+   - Handle input (keyboard/quit)
+   - Update fighters (move, attack, animasi)
+   - Draw ke layar
+4. Jika ada pemenang, tampilkan victory screen
+5. ESC untuk kembali ke menu
+
+OOP CONCEPTS:
+- Composition: BattleSystem memiliki Fighter dan AIController
+- Factory Pattern: create_fighter() membuat Fighter dengan config
+- Encapsulation: Game loop tersembunyi dalam run()
+"""
 import pygame
 import sys
-from battle.fighter_base import Fighter
-from battle.ai_controller import AIController
+from battle.fighter_base import Fighter       # Class karakter
+from battle.ai_controller import AIController # Class AI
 
-pygame.init()
 
-SCREEN_WIDTH = 1400
-SCREEN_HEIGHT = 800
-FPS = 60
+SCREEN_W, SCREEN_H = 1400, 800  # Ukuran layar
+FPS = 60                         # Frame per second
 
+# Warna (R, G, B)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
-CYAN = (100, 200, 255)
-ORANGE = (255, 150, 80)
+CYAN = (100, 200, 255)      # Warna P1
+ORANGE = (255, 150, 80)     # Warna P2/AI
 
-CHARACTER_DATA = {
-    'Samurai': {
-        'folder': 'character/assets/Samurai',
-        'scale': 2.5,
-        'offset': [40, 30],
-        'animation_files': ['Idle.png', 'Run.png', 'Jump.png', 'Attack_1.png', 'Attack_2.png', 'Attack_3.png', 'Hurt.png', 'Dead.png'],
-        # Idle=768/128=6, Run=1024/128=8, Jump=1536/128=12, Attack1=768/128=6, Attack2=512/128=4, Attack3=384/128=3, Hurt=256/128=2, Dead=384/128=3
-        'animation_steps': [6, 8, 12, 6, 4, 3, 2, 3]
-    },
-    'Shinobi': {
-        'folder': 'character/assets/Shinobi',
-        'scale': 2.5,
-        'offset': [40, 30],
-        'animation_files': ['Idle.png', 'Run.png', 'Jump.png', 'Attack_1.png', 'Attack_2.png', 'Attack_3.png', 'Hurt.png', 'Dead.png'],
-        # Idle=768/128=6, Run=1024/128=8, Jump=1536/128=12, Attack1=640/128=5, Attack2=384/128=3, Attack3=512/128=4, Hurt=256/128=2, Dead=512/128=4
-        'animation_steps': [6, 8, 12, 5, 3, 4, 2, 4]
-    },
-    'Fighter': {
-        'folder': 'character/assets/Fighter',
-        'scale': 2.5,
-        'offset': [40, 30],
-        'animation_files': ['Idle.png', 'Run.png', 'Jump.png', 'Attack_1.png', 'Attack_2.png', 'Attack_3.png', 'Hurt.png', 'Dead.png'],
-        # Idle=768/128=6, Run=1024/128=8, Jump=1280/128=10, Attack1=512/128=4, Attack2=384/128=3, Attack3=512/128=4, Hurt=384/128=3, Dead=384/128=3
-        'animation_steps': [6, 8, 10, 4, 3, 4, 3, 3]
-    },
-    'Converted Vampire': {
-        'folder': 'character/assets/Vampire1',
-        'scale': 2.0,
-        'offset': [60, 50],
-        'animation_files': ['Idle.png', 'Run.png', 'Jump.png', 'Attack_1.png', 'Attack_2.png', 'Attack_3.png', 'Hurt.png', 'Dead.png'],
-        # Idle=640/128=5, Run=1024/128=8, Jump=896/128=7, Attack1=640/128=5, Attack2=384/128=3, Attack3=512/128=4, Hurt=128/128=1, Dead=1024/128=8
-        'animation_steps': [5, 8, 7, 5, 3, 4, 1, 8]
-    },
-    'Countess Vampire': {
-        'folder': 'character/assets/Vampire2',
-        'scale': 2.0,
-        'offset': [60, 50],
-        'animation_files': ['Idle.png', 'Run.png', 'Jump.png', 'Attack_1.png', 'Attack_2.png', 'Attack_3.png', 'Hurt.png', 'Dead.png'],
-        # Idle=640/128=5, Run=768/128=6, Jump=768/128=6, Attack1=768/128=6, Attack2=384/128=3, Attack3=128/128=1, Hurt=256/128=2, Dead=1024/128=8
-        'animation_steps': [5, 6, 6, 6, 3, 1, 2, 8]
-    },
-    'Vampire Girl': {
-        'folder': 'character/assets/Vampire3',
-        'scale': 2.0,
-        'offset': [60, 50],
-        'animation_files': ['Idle.png', 'Run.png', 'Jump.png', 'Attack_1.png', 'Attack_2.png', 'Attack_3.png', 'Hurt.png', 'Dead.png'],
-        # Idle=640/128=5, Run=768/128=6, Jump=768/128=6, Attack1=640/128=5, Attack2=512/128=4, Attack3=256/128=2, Hurt=256/128=2, Dead=1280/128=10
-        'animation_steps': [5, 6, 6, 5, 4, 2, 2, 10]
-    }
+
+# === DATA KARAKTER ===
+# Format: 'Nama': (folder, scale, [offset_x, offset_y], [files...], [frame_counts...])
+# Files: Idle, Run, Jump, Attack1, Attack2, Attack3, Hurt, Dead
+CHARACTERS = {
+    'Samurai': (
+        'character/assets/Samurai',     # Folder sprite
+        2.5,                            # Scale sprite
+        [40, 30],                       # Offset [x, y]
+        ['Idle.png', 'Run.png', 'Jump.png', 'Attack_1.png', 
+         'Attack_2.png', 'Attack_3.png', 'Hurt.png', 'Dead.png'],
+        [6, 8, 12, 6, 4, 3, 2, 3]       # Jumlah frame tiap animasi
+    ),
+    'Shinobi': (
+        'character/assets/Shinobi', 2.5, [40, 30],
+        ['Idle.png', 'Run.png', 'Jump.png', 'Attack_1.png', 
+         'Attack_2.png', 'Attack_3.png', 'Hurt.png', 'Dead.png'],
+        [6, 8, 12, 5, 3, 4, 2, 4]
+    ),
+    'Fighter': (
+        'character/assets/Fighter', 2.5, [40, 30],
+        ['Idle.png', 'Run.png', 'Jump.png', 'Attack_1.png', 
+         'Attack_2.png', 'Attack_3.png', 'Hurt.png', 'Dead.png'],
+        [6, 8, 10, 4, 3, 4, 3, 3]
+    ),
+    'Converted Vampire': (
+        'character/assets/Vampire1', 2.0, [60, 50],
+        ['Idle.png', 'Run.png', 'Jump.png', 'Attack_1.png', 
+         'Attack_2.png', 'Attack_3.png', 'Hurt.png', 'Dead.png'],
+        [5, 8, 7, 5, 3, 4, 1, 8]
+    ),
+    'Countess Vampire': (
+        'character/assets/Vampire2', 2.0, [60, 50],
+        ['Idle.png', 'Run.png', 'Jump.png', 'Attack_1.png', 
+         'Attack_2.png', 'Attack_3.png', 'Hurt.png', 'Dead.png'],
+        [5, 6, 6, 6, 3, 1, 2, 8]
+    ),
+    'Vampire Girl': (
+        'character/assets/Vampire3', 2.0, [60, 50],
+        ['Idle.png', 'Run.png', 'Jump.png', 'Attack_1.png', 
+         'Attack_2.png', 'Attack_3.png', 'Hurt.png', 'Dead.png'],
+        [5, 6, 6, 5, 4, 2, 2, 10]
+    ),
+}
+
+
+# === DATA ARENA ===
+# Format: 'Nama Arena': 'path/to/background.png'
+ARENAS = {
+    'Keputih': 'arena/assets/Keputih.png',
+    'San Antonio': 'arena/assets/SanAntonio.png',
+    'Taman Apsari': 'arena/assets/TamanApsari.png',
+    'Tunjungan': 'arena/assets/Tunjungan.png'
 }
 
 
 class BattleSystem:
+    """
+    Class utama untuk mengelola pertarungan
+    
+    Attributes:
+        screen: Pygame display surface
+        p1, p2: Fighter objects
+        ai: AIController (None jika PvP)
+        mode: 'pvp' atau 'ai'
+    
+    Dipanggil dari: menu.py setelah character & arena selection
+    """
+    
     def __init__(self, char_p1, char_p2, arena, mode='pvp'):
-        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        pygame.display.set_caption("Battle Arena")
+        """
+        Constructor - Setup battle
+        
+        Args:
+            char_p1: Nama karakter P1 (dari character selection)
+            char_p2: Nama karakter P2 (dari character selection)
+            arena: Nama arena (dari arena selection)
+            mode: 'pvp' (2 player) atau 'ai' (vs AI)
+        
+        Dipanggil dari: menu.py
+        Membuat: Fighter P1, Fighter P2, AIController (jika mode AI)
+        """
+        # === INIT PYGAME ===
+        pygame.init()
+        self.screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
+        pygame.display.set_caption("Py-Fighter")
         self.clock = pygame.time.Clock()
         
-        self.char_p1_name = char_p1
-        self.char_p2_name = char_p2
-        self.arena_name = arena
+        # === SIMPAN CONFIG ===
         self.mode = mode
+        self.p1_name = char_p1
+        self.p2_name = char_p2
         
-        self.bg_image = self.load_arena(arena)
-        
-        self.fighter_1 = self.create_fighter(char_p1, 200, 450, False)
-        self.fighter_2 = self.create_fighter(char_p2, 1000, 450, True)
-        
-        self.ai_controller = None
-        if mode == 'ai':
-            self.ai_controller = AIController(self.fighter_2, self.fighter_1)
-        
-        self.intro_count = 3
-        self.last_count_update = pygame.time.get_ticks()
-        self.round_over = False
-        self.round_over_time = 0
-        self.winner = None
-    
-    def load_arena(self, arena_name):
-        arena_paths = {
-            'Keputih': 'arena/assets/Keputih.png',
-            'San Antonio': 'arena/assets/SanAntonio.png',
-            'Taman Apsari': 'arena/assets/TamanApsari.png',
-            'Tunjungan': 'arena/assets/Tunjungan.png'
-        }
-        
+        # === LOAD BACKGROUND ===
+        # Menggunakan file dari arena/assets/
         try:
-            bg = pygame.image.load(arena_paths.get(arena_name, 'arena/assets/Keputih.png')).convert()
-            bg = pygame.transform.scale(bg, (SCREEN_WIDTH, SCREEN_HEIGHT))
-            return bg
+            bg_path = ARENAS.get(arena, 'arena/assets/Keputih.png')
+            self.bg = pygame.transform.scale(
+                pygame.image.load(bg_path).convert(),
+                (SCREEN_W, SCREEN_H)
+            )
         except:
-            return None
-    
-    def create_fighter(self, char_name, x, y, flip):
-        char_data = CHARACTER_DATA.get(char_name, CHARACTER_DATA['Samurai'])
+            self.bg = None  # Fallback: warna solid
         
-        animation_list = []
-        for anim_file, num_frames in zip(char_data['animation_files'], char_data['animation_steps']):
-            try:
-                sprite_sheet = pygame.image.load(f"{char_data['folder']}/{anim_file}").convert_alpha()
-                frame_width = sprite_sheet.get_width() // num_frames
-                frame_height = sprite_sheet.get_height()
-                
-                frames = []
-                for i in range(num_frames):
-                    frame = sprite_sheet.subsurface(pygame.Rect(i * frame_width, 0, frame_width, frame_height))
-                    scaled_frame = pygame.transform.scale(frame, 
-                        (int(frame_width * char_data['scale']), int(frame_height * char_data['scale'])))
-                    frames.append(scaled_frame)
-                animation_list.append(frames)
-            except Exception as e:
-                dummy_frame = pygame.Surface((100, 100), pygame.SRCALPHA)
-                dummy_frame.fill((255, 0, 255))
-                animation_list.append([dummy_frame] * num_frames)
+        # === BUAT FIGHTERS ===
+        # create_fighter() adalah Factory Method
+        self.p1 = self.create_fighter(char_p1, 200, 450, False)   # P1 di kiri
+        self.p2 = self.create_fighter(char_p2, 1000, 450, True)   # P2 di kanan
         
-        fighter = Fighter(char_name, x, y, flip, char_data, animation_list)
-        return fighter
-    
-    def draw_bg(self):
-        if self.bg_image:
-            self.screen.blit(self.bg_image, (0, 0))
+        # === SETUP AI (jika mode AI) ===
+        if mode == 'ai':
+            # AIController mengontrol P2, target adalah P1
+            self.ai = AIController(self.p2, self.p1)
         else:
-            self.screen.fill((50, 50, 50))
+            self.ai = None
+        
+        # === GAME STATE ===
+        self.round_over = False     # True jika ada pemenang
+        self.winner = None          # 1 atau 2
+        self.intro_count = 3        # Countdown sebelum mulai
+        self.last_count = pygame.time.get_ticks()
+    
+    
+    def create_fighter(self, name, x, y, flip):
+        """
+        Factory Method - Buat Fighter dengan konfigurasi dari CHARACTERS
+        
+        Args:
+            name: Nama karakter (key di CHARACTERS dict)
+            x, y: Posisi spawn
+            flip: True jika menghadap kiri (P2)
+        
+        Returns:
+            Fighter: Instance Fighter yang sudah dikonfigurasi
+        
+        Proses:
+            1. Ambil data dari CHARACTERS dict
+            2. Load semua sprite sheet dari folder
+            3. Potong sprite sheet jadi frames
+            4. Scale setiap frame
+            5. Return Fighter dengan animations
+        """
+        # Ambil data karakter, default ke Samurai jika tidak ditemukan
+        folder, scale, offset, files, frames = CHARACTERS.get(
+            name, CHARACTERS['Samurai']
+        )
+        
+        # === LOAD ANIMATIONS ===
+        animations = []
+        for file, num_frames in zip(files, frames):
+            try:
+                # Load sprite sheet
+                sheet = pygame.image.load(f"{folder}/{file}").convert_alpha()
+                w = sheet.get_width() // num_frames  # Lebar per frame
+                h = sheet.get_height()
+                
+                # Potong menjadi frames individual
+                anim = []
+                for i in range(num_frames):
+                    frame = sheet.subsurface(i * w, 0, w, h)
+                    # Scale frame
+                    scaled = pygame.transform.scale(
+                        frame, 
+                        (int(w * scale), int(h * scale))
+                    )
+                    anim.append(scaled)
+                animations.append(anim)
+                
+            except Exception:
+                # Fallback: dummy sprite pink
+                dummy = pygame.Surface((100, 100), pygame.SRCALPHA)
+                dummy.fill((255, 0, 255))
+                animations.append([dummy] * num_frames)
+        
+        # === RETURN FIGHTER INSTANCE ===
+        # Fighter class ada di fighter_base.py
+        return Fighter(name, x, y, flip, 
+                      {'scale': scale, 'offset': offset}, 
+                      animations)
+    
     
     def draw_health_bar(self, health, x, y, color):
-        ratio = health / 100
+        """
+        Gambar health bar ke layar
         
-        pygame.draw.rect(self.screen, (50, 50, 50), (x - 2, y - 2, 404, 34))
+        Args:
+            health: HP saat ini (0-100)
+            x, y: Posisi bar
+            color: Warna bar HP
+        """
+        # Background (gelap)
+        pygame.draw.rect(self.screen, (50, 50, 50), (x-2, y-2, 404, 34))
+        # Base (abu-abu)
         pygame.draw.rect(self.screen, (200, 200, 200), (x, y, 400, 30))
-        pygame.draw.rect(self.screen, color, (x, y, 400 * ratio, 30))
+        # HP bar (warna sesuai health)
+        pygame.draw.rect(self.screen, color, (x, y, 400 * health / 100, 30))
+        # Border
         pygame.draw.rect(self.screen, (0, 0, 0), (x, y, 400, 30), 3)
     
-    def draw_text(self, text, font, color, x, y):
-        img = font.render(text, True, color)
-        self.screen.blit(img, (x, y))
     
     def draw_ui(self):
-        health_color_p1 = CYAN if self.fighter_1.health > 50 else (RED if self.fighter_1.health < 25 else YELLOW)
-        health_color_p2 = ORANGE if self.fighter_2.health > 50 else (RED if self.fighter_2.health < 25 else YELLOW)
+        """
+        Gambar UI (health bars dan nama) ke layar
         
-        self.draw_health_bar(self.fighter_1.health, 50, 50, health_color_p1)
-        self.draw_health_bar(self.fighter_2.health, SCREEN_WIDTH - 450, 50, health_color_p2)
-        
-        font_name = pygame.font.Font(None, 32)
-        self.draw_text(f"P1: {self.char_p1_name}", font_name, CYAN, 50, 20)
-        mode_text = "P2" if self.mode == 'pvp' else "AI"
-        self.draw_text(f"{mode_text}: {self.char_p2_name}", font_name, ORANGE, SCREEN_WIDTH - 450, 20)
-        
-        font_small = pygame.font.Font(None, 20)
-        controls_p1 = "P1: A/D-Move W-Jump R/T/Y-Attack"
-        controls_p2 = "P2: Arrows-Move Up-Jump Num1/2/3-Attack" if self.mode == 'pvp' else "AI Controlled"
-        self.draw_text(controls_p1, font_small, (200, 200, 200), 50, SCREEN_HEIGHT - 30)
-        self.draw_text(controls_p2, font_small, (200, 200, 200), SCREEN_WIDTH - 400, SCREEN_HEIGHT - 30)
-    
-    def check_round_over(self):
-        if not self.round_over:
-            if not self.fighter_1.alive:
-                self.round_over = True
-                self.round_over_time = pygame.time.get_ticks()
-                self.winner = 2
-            elif not self.fighter_2.alive:
-                self.round_over = True
-                self.round_over_time = pygame.time.get_ticks()
-                self.winner = 1
-        
-        return self.round_over
-    
-    def draw_round_over_screen(self):
-        overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 150))
-        self.screen.blit(overlay, (0, 0))
-        
-        font_large = pygame.font.Font(None, 100)
-        font_medium = pygame.font.Font(None, 50)
-        
-        if self.winner == 1:
-            winner_text = f"{self.char_p1_name} WINS!"
-            color = CYAN
+        Warna health bar berubah:
+        - HP > 50: Cyan (P1) / Orange (P2)
+        - HP 25-50: Kuning (warning)
+        - HP < 25: Merah (critical)
+        """
+        # === TENTUKAN WARNA BERDASARKAN HP ===
+        if self.p1.health > 50:
+            c1 = CYAN
+        elif self.p1.health > 25:
+            c1 = YELLOW
         else:
-            winner_name = f"{self.char_p2_name} ({'AI' if self.mode == 'ai' else 'P2'})"
-            winner_text = f"{winner_name} WINS!"
-            color = ORANGE
+            c1 = RED
         
-        text = font_large.render(winner_text, True, color)
-        text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 50))
-        self.screen.blit(text, text_rect)
+        if self.p2.health > 50:
+            c2 = ORANGE
+        elif self.p2.health > 25:
+            c2 = YELLOW
+        else:
+            c2 = RED
         
-        instruction = font_medium.render("Press ESC to return to menu", True, WHITE)
-        inst_rect = instruction.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 50))
-        self.screen.blit(instruction, inst_rect)
+        # === GAMBAR HEALTH BARS ===
+        self.draw_health_bar(self.p1.health, 50, 50, c1)
+        self.draw_health_bar(self.p2.health, SCREEN_W - 450, 50, c2)
+        
+        # === GAMBAR NAMA ===
+        font = pygame.font.Font(None, 32)
+        self.screen.blit(
+            font.render(f"P1: {self.p1_name}", True, CYAN), 
+            (50, 20)
+        )
+        p2_label = "AI" if self.mode == 'ai' else "P2"
+        self.screen.blit(
+            font.render(f"{p2_label}: {self.p2_name}", True, ORANGE), 
+            (SCREEN_W - 450, 20)
+        )
     
-    def draw_intro_countdown(self):
-        if self.intro_count > 0:
-            overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
-            overlay.fill((0, 0, 0, 100))
-            self.screen.blit(overlay, (0, 0))
-            
-            if pygame.time.get_ticks() - self.last_count_update > 1000:
-                self.intro_count -= 1
-                self.last_count_update = pygame.time.get_ticks()
-            
-            font = pygame.font.Font(None, 200)
-            if self.intro_count > 0:
-                text = font.render(str(self.intro_count), True, YELLOW)
-            else:
-                text = font.render("FIGHT!", True, RED)
-            
-            text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
-            self.screen.blit(text, text_rect)
-            
-            return True
-        return False
     
     def run(self):
-        running = True
+        """
+        Main Game Loop - Inti dari game
         
-        while running:
-            self.clock.tick(FPS)
+        Loop:
+            1. Handle events (quit, escape)
+            2. Draw background
+            3. Jika countdown: tampilkan angka
+            4. Jika game aktif:
+               - Update P1 (keyboard input)
+               - Update P2 (keyboard/AI)
+               - Cek pemenang
+            5. Draw fighters dan UI
+            6. Jika ada pemenang: tampilkan victory
+        
+        Returns:
+            bool: True untuk kembali ke menu
+        
+        Dipanggil dari: menu.py setelah create BattleSystem
+        """
+        while True:
+            self.clock.tick(FPS)  # Limit 60 FPS
             
+            # === HANDLE EVENTS ===
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
-                
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
-                        return True
+                        return True  # Kembali ke menu
             
-            self.draw_bg()
+            # === DRAW BACKGROUND ===
+            if self.bg:
+                self.screen.blit(self.bg, (0, 0))
+            else:
+                self.screen.fill((50, 50, 50))
             
-            if not self.draw_intro_countdown():
-                if self.mode == 'ai' and self.ai_controller:
-                    self.ai_controller.update(SCREEN_WIDTH, SCREEN_HEIGHT, self.screen, self.round_over)
+            # === INTRO COUNTDOWN ===
+            if self.intro_count > 0:
+                # Kurangi countdown setiap 1 detik
+                if pygame.time.get_ticks() - self.last_count > 1000:
+                    self.intro_count -= 1
+                    self.last_count = pygame.time.get_ticks()
+                
+                # Tampilkan angka countdown
+                font = pygame.font.Font(None, 200)
+                txt = str(self.intro_count) if self.intro_count > 0 else "FIGHT!"
+                color = YELLOW if self.intro_count > 0 else RED
+                text = font.render(txt, True, color)
+                self.screen.blit(text, text.get_rect(center=(SCREEN_W//2, SCREEN_H//2)))
+            
+            else:
+                # === GAME LOGIC ===
+                
+                # P1 selalu pakai keyboard
+                # move() ada di fighter_base.py
+                self.p1.move(SCREEN_W, SCREEN_H, self.p2, self.round_over)
+                
+                # P2: AI atau keyboard
+                if self.ai:
+                    # AI update -> ai_move()
+                    self.ai.update(SCREEN_W, SCREEN_H, self.round_over)
                 else:
-                    self.fighter_2.move(SCREEN_WIDTH, SCREEN_HEIGHT, self.screen, self.fighter_1, self.round_over)
+                    # Keyboard P2
+                    self.p2.move(SCREEN_W, SCREEN_H, self.p1, self.round_over)
                 
-                self.fighter_1.move(SCREEN_WIDTH, SCREEN_HEIGHT, self.screen, self.fighter_2, self.round_over)
+                # Update animasi
+                self.p1.update()
+                self.p2.update()
                 
-                self.fighter_1.update()
-                self.fighter_2.update()
-                
-                self.check_round_over()
+                # === CEK PEMENANG ===
+                if not self.round_over:
+                    if not self.p1.alive:
+                        self.round_over = True
+                        self.winner = 2
+                    elif not self.p2.alive:
+                        self.round_over = True
+                        self.winner = 1
             
-            self.fighter_1.draw(self.screen)
-            self.fighter_2.draw(self.screen)
+            # === DRAW FIGHTERS ===
+            self.p1.draw(self.screen)
+            self.p2.draw(self.screen)
             
+            # === DRAW UI ===
             self.draw_ui()
             
+            # === VICTORY SCREEN ===
             if self.round_over:
-                self.draw_round_over_screen()
+                # Overlay gelap
+                overlay = pygame.Surface((SCREEN_W, SCREEN_H), pygame.SRCALPHA)
+                overlay.fill((0, 0, 0, 150))
+                self.screen.blit(overlay, (0, 0))
+                
+                # Teks pemenang
+                font = pygame.font.Font(None, 100)
+                winner_name = self.p1_name if self.winner == 1 else self.p2_name
+                color = CYAN if self.winner == 1 else ORANGE
+                text = font.render(f"{winner_name} WINS!", True, color)
+                self.screen.blit(text, text.get_rect(center=(SCREEN_W//2, SCREEN_H//2 - 50)))
+                
+                # Instruksi
+                font2 = pygame.font.Font(None, 50)
+                self.screen.blit(
+                    font2.render("Press ESC to return", True, WHITE),
+                    (SCREEN_W//2 - 150, SCREEN_H//2 + 50)
+                )
             
+            # === UPDATE DISPLAY ===
             pygame.display.update()
         
         return True
 
 
+# === ENTRY POINT (untuk testing langsung) ===
 if __name__ == "__main__":
-    battle = BattleSystem("Samurai", "Shinobi", "Keputih", "pvp")
-    battle.run()
+    # Test langsung tanpa menu
+    BattleSystem("Samurai", "Shinobi", "Keputih", "ai").run()

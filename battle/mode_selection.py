@@ -1,232 +1,217 @@
+"""
+FILE: mode_selection.py
+DESKRIPSI: UI untuk memilih mode game (PvP atau vs AI)
+DIGUNAKAN OLEH: menu.py (sebelum character selection)
+MENGGUNAKAN: pygame (untuk UI)
+
+ALUR PROGRAM:
+1. menu.py memanggil ModeSelection().run()
+2. User melihat 2 tombol: "PLAYER VS PLAYER" dan "PLAYER VS AI"
+3. User klik salah satu tombol
+4. ModeSelection.run() return 'pvp' atau 'ai'
+5. menu.py lanjut ke character selection dengan mode yang dipilih
+
+OOP CONCEPTS:
+- Encapsulation: UI logic dibungkus dalam class
+- Composition: ModeSelection memiliki list ModeButton
+- Single Responsibility: Setiap class punya 1 tugas
+"""
 import pygame
 import sys
-import math
 
-pygame.init()
 
-SCREEN_WIDTH = 1400
-SCREEN_HEIGHT = 800
-FPS = 60
-
+# === KONSTANTA ===
+SCREEN_W, SCREEN_H = 1400, 800
 WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-GOLD = (255, 200, 100)
-DARK_BLUE = (20, 45, 90)
-BLUE = (40, 70, 130)
-ORANGE = (255, 150, 80)
 CYAN = (100, 200, 255)
+ORANGE = (255, 150, 80)
+
 
 class ModeButton:
-    def __init__(self, x, y, width, height, text, mode):
-        self.rect = pygame.Rect(x, y, width, height)
-        self.text = text
-        self.mode = mode
-        self.is_hovered = False
-        self.hover_alpha = 0
-        self.scale = 1.0
+    """
+    Class untuk tombol pilihan mode
     
-    def update(self):
-        if self.is_hovered:
-            self.hover_alpha = min(255, self.hover_alpha + 20)
-            self.scale = min(1.05, self.scale + 0.01)
-        else:
-            self.hover_alpha = max(0, self.hover_alpha - 20)
-            self.scale = max(1.0, self.scale - 0.01)
+    Attributes:
+        rect: Area tombol (untuk collision detection)
+        text: Teks yang ditampilkan
+        mode: 'pvp' atau 'ai' (return value)
+        hovered: True jika mouse di atas tombol
+    """
     
-    def draw(self, surface):
-        scaled_width = int(self.rect.width * self.scale)
-        scaled_height = int(self.rect.height * self.scale)
-        scaled_rect = pygame.Rect(
-            self.rect.centerx - scaled_width // 2,
-            self.rect.centery - scaled_height // 2,
-            scaled_width,
-            scaled_height
-        )
+    def __init__(self, x, y, w, h, text, mode):
+        """
+        Constructor - Buat tombol
         
-        button_surf = pygame.Surface((scaled_width, scaled_height), pygame.SRCALPHA)
-        pygame.draw.rect(button_surf, (20, 40, 80, 200), button_surf.get_rect(), border_radius=15)
-        surface.blit(button_surf, scaled_rect)
+        Args:
+            x, y: Posisi tombol
+            w, h: Ukuran tombol
+            text: Teks di tombol
+            mode: Nilai yang di-return saat diklik
         
-        if self.hover_alpha > 0:
-            hover_surf = pygame.Surface((scaled_width, scaled_height), pygame.SRCALPHA)
-            pygame.draw.rect(hover_surf, (*ORANGE, self.hover_alpha // 3), hover_surf.get_rect(), border_radius=15)
-            surface.blit(hover_surf, scaled_rect)
-            pygame.draw.rect(surface, (*ORANGE, self.hover_alpha), scaled_rect, 3, border_radius=15)
-        else:
-            pygame.draw.rect(surface, (60, 100, 160), scaled_rect, 2, border_radius=15)
+        Dipanggil dari: ModeSelection.__init__()
+        """
+        self.rect = pygame.Rect(x, y, w, h)     # Hitbox tombol
+        self.text = text                         # Label tombol
+        self.mode = mode                         # Return value
+        self.hovered = False                     # Hover state
+    
+    
+    def draw(self, screen, font):
+        """
+        Gambar tombol ke layar
         
-        font = pygame.font.Font(None, 48)
-        text_color = ORANGE if self.is_hovered else WHITE
+        Args:
+            screen: Pygame surface
+            font: Font untuk teks
+        
+        Visual:
+            - Normal: border biru, teks putih
+            - Hover: border orange, teks orange
+        """
+        # Warna berdasarkan hover state
+        color = ORANGE if self.hovered else (60, 100, 160)
+        text_color = ORANGE if self.hovered else WHITE
+        
+        # Gambar background
+        pygame.draw.rect(screen, (20, 40, 80), self.rect, border_radius=15)
+        # Gambar border
+        pygame.draw.rect(screen, color, self.rect, 3, border_radius=15)
+        
+        # Gambar teks (centered)
         text_surf = font.render(self.text, True, text_color)
-        text_rect = text_surf.get_rect(center=scaled_rect.center)
-        surface.blit(text_surf, text_rect)
+        screen.blit(text_surf, text_surf.get_rect(center=self.rect.center))
     
-    def check_hover(self, mouse_pos):
-        self.is_hovered = self.rect.collidepoint(mouse_pos)
-        return self.is_hovered
     
-    def is_clicked(self, mouse_pos):
-        return self.rect.collidepoint(mouse_pos)
+    def check_click(self, pos):
+        """
+        Cek apakah posisi mouse di dalam tombol
+        
+        Args:
+            pos: (x, y) posisi mouse
+        
+        Returns:
+            bool: True jika mouse di dalam tombol
+        """
+        return self.rect.collidepoint(pos)
 
 
 class ModeSelection:
+    """
+    Screen untuk memilih mode game
+    
+    Menampilkan 2 pilihan:
+    - PLAYER VS PLAYER (mode='pvp')
+    - PLAYER VS AI (mode='ai')
+    
+    Dipanggil dari: menu.py
+    Returns: 'pvp', 'ai', atau None (jika cancel)
+    """
+    
     def __init__(self):
-        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        pygame.display.set_caption("Select Game Mode")
-        self.background = None
-        self.load_background()
-        self.time = 0
+        """
+        Constructor - Setup screen dan buttons
         
-        button_width = 400
-        button_height = 150
-        spacing = 100
-        total_height = button_height * 2 + spacing
-        start_y = (SCREEN_HEIGHT - total_height) // 2 + 50
-        center_x = SCREEN_WIDTH // 2
+        Membuat 2 ModeButton di tengah layar
+        """
+        # === INIT PYGAME ===
+        pygame.init()
+        self.screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
+        pygame.display.set_caption("Select Game Mode")
+        
+        # === LOAD BACKGROUND ===
+        try:
+            self.bg = pygame.transform.scale(
+                pygame.image.load('background.png').convert(), 
+                (SCREEN_W, SCREEN_H)
+            )
+        except:
+            self.bg = None
+        
+        # === BUAT BUTTONS ===
+        cx, cy = SCREEN_W // 2, SCREEN_H // 2  # Center screen
         
         self.buttons = [
-            ModeButton(center_x - button_width // 2, start_y, button_width, button_height, "PLAYER VS PLAYER", "pvp"),
-            ModeButton(center_x - button_width // 2, start_y + button_height + spacing, button_width, button_height, "PLAYER VS AI", "ai")
+            ModeButton(cx - 200, cy - 100, 400, 80, "PLAYER VS PLAYER", "pvp"),
+            ModeButton(cx - 200, cy + 50, 400, 80, "PLAYER VS AI", "ai")
         ]
+        
+        # === FONTS ===
+        self.font = pygame.font.Font(None, 48)       # Untuk tombol
+        self.title_font = pygame.font.Font(None, 80) # Untuk judul
     
-    def load_background(self):
-        try:
-            self.background = pygame.image.load('background.png').convert()
-            self.background = pygame.transform.scale(self.background, (SCREEN_WIDTH, SCREEN_HEIGHT))
-        except:
-            self.background = None
-    
-    def update(self):
-        self.time += 1
-        for button in self.buttons:
-            button.update()
-    
-    def draw_background(self):
-        if self.background:
-            self.screen.blit(self.background, (0, 0))
-            overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
-            overlay.fill((0, 0, 0, 120))
-            self.screen.blit(overlay, (0, 0))
-        else:
-            for y in range(SCREEN_HEIGHT):
-                ratio = y / SCREEN_HEIGHT
-                r = int(20 + ratio * 20)
-                g = int(45 + ratio * 25)
-                b = int(90 + ratio * 40)
-                pygame.draw.line(self.screen, (r, g, b), (0, y), (SCREEN_WIDTH, y))
-    
-    def draw_header(self):
-        header_surf = pygame.Surface((SCREEN_WIDTH, 200), pygame.SRCALPHA)
-        pygame.draw.rect(header_surf, (10, 25, 50, 150), header_surf.get_rect())
-        self.screen.blit(header_surf, (0, 0))
-        
-        title_font = pygame.font.Font(None, 90)
-        title_text = "SELECT GAME MODE"
-        
-        for i in range(3):
-            glow = title_font.render(title_text, True, (*CYAN, 60 - i*15))
-            glow_rect = glow.get_rect(center=(SCREEN_WIDTH // 2 + i, 80 + i))
-            self.screen.blit(glow, glow_rect)
-        
-        title = title_font.render(title_text, True, WHITE)
-        title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, 80))
-        self.screen.blit(title, title_rect)
-        
-        line_width = 600
-        line_x = (SCREEN_WIDTH - line_width) // 2
-        for i in range(3):
-            offset = math.sin(self.time * 0.05 + i) * 2
-            pygame.draw.line(self.screen, (*CYAN, 150 - i*40), 
-                           (line_x, 130 + offset), (line_x + line_width, 130 + offset), 2 + i)
-    
-    def draw_footer(self):
-        footer_surf = pygame.Surface((SCREEN_WIDTH, 70), pygame.SRCALPHA)
-        pygame.draw.rect(footer_surf, (10, 25, 50, 180), footer_surf.get_rect())
-        self.screen.blit(footer_surf, (0, SCREEN_HEIGHT - 70))
-        
-        font = pygame.font.Font(None, 24)
-        controls = [("MOUSE", "Select Mode"), ("ESC", "Exit to Menu")]
-        
-        total_width = 500
-        start_x = (SCREEN_WIDTH - total_width) // 2
-        spacing = total_width // len(controls)
-        
-        for i, (key, action) in enumerate(controls):
-            x = start_x + i * spacing
-            
-            key_bg = pygame.Surface((90, 24), pygame.SRCALPHA)
-            pygame.draw.rect(key_bg, (40, 70, 120, 200), key_bg.get_rect(), border_radius=4)
-            self.screen.blit(key_bg, (x + 60, SCREEN_HEIGHT - 52))
-            
-            key_text = font.render(key, True, GOLD)
-            key_rect = key_text.get_rect(center=(x + 105, SCREEN_HEIGHT - 40))
-            
-            action_text = font.render(action, True, WHITE)
-            action_rect = action_text.get_rect(center=(x + 105, SCREEN_HEIGHT - 18))
-            
-            self.screen.blit(key_text, key_rect)
-            self.screen.blit(action_text, action_rect)
-    
-    def draw(self):
-        self.draw_background()
-        self.draw_header()
-        
-        for button in self.buttons:
-            button.draw(self.screen)
-        
-        self.draw_footer()
-    
-    def handle_hover(self, mouse_pos):
-        for button in self.buttons:
-            button.check_hover(mouse_pos)
-    
-    def handle_click(self, mouse_pos):
-        for button in self.buttons:
-            if button.is_clicked(mouse_pos):
-                return button.mode
-        return None
     
     def run(self):
-        clock = pygame.time.Clock()
-        running = True
-        selected_mode = None
+        """
+        Main loop - Tampilkan UI dan handle input
         
-        while running:
-            mouse_pos = pygame.mouse.get_pos()
+        Returns:
+            str: 'pvp' atau 'ai' jika user pilih
+            None: jika user tekan ESC (cancel)
+        
+        Loop:
+            1. Handle events (quit, ESC, click)
+            2. Update hover state
+            3. Draw background, title, buttons
+            4. Return mode jika button diklik
+        """
+        clock = pygame.time.Clock()
+        
+        while True:
+            mouse = pygame.mouse.get_pos()
             
+            # === HANDLE EVENTS ===
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    running = False
                     pygame.quit()
                     sys.exit()
-                
-                elif event.type == pygame.KEYDOWN:
+                    
+                if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
-                        running = False
-                        selected_mode = None
+                        return None  # Cancel, kembali ke menu
                 
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    mode = self.handle_click(mouse_pos)
-                    if mode:
-                        selected_mode = mode
-                        running = False
-                
-                elif event.type == pygame.MOUSEMOTION:
-                    self.handle_hover(mouse_pos)
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    # Cek klik pada tombol
+                    for btn in self.buttons:
+                        if btn.check_click(mouse):
+                            return btn.mode  # Return 'pvp' atau 'ai'
             
-            self.update()
-            self.draw()
+            # === UPDATE HOVER STATE ===
+            for btn in self.buttons:
+                btn.hovered = btn.rect.collidepoint(mouse)
             
+            # === DRAW ===
+            
+            # Background
+            if self.bg:
+                self.screen.blit(self.bg, (0, 0))
+                # Overlay gelap
+                overlay = pygame.Surface((SCREEN_W, SCREEN_H), pygame.SRCALPHA)
+                overlay.fill((0, 0, 0, 120))
+                self.screen.blit(overlay, (0, 0))
+            else:
+                self.screen.fill((20, 45, 90))
+            
+            # Title
+            title = self.title_font.render("SELECT GAME MODE", True, WHITE)
+            self.screen.blit(title, title.get_rect(center=(SCREEN_W//2, 150)))
+            
+            # Buttons
+            for btn in self.buttons:
+                btn.draw(self.screen, self.font)
+            
+            # Footer instruction
+            small_font = pygame.font.Font(None, 24)
+            self.screen.blit(
+                small_font.render("Click to select | ESC to go back", True, (150, 150, 150)),
+                (SCREEN_W//2 - 130, SCREEN_H - 40)
+            )
+            
+            # === UPDATE DISPLAY ===
             pygame.display.flip()
-            clock.tick(FPS)
-        
-        return selected_mode
+            clock.tick(60)
 
 
+# === ENTRY POINT (untuk testing langsung) ===
 if __name__ == "__main__":
-    selection = ModeSelection()
-    result = selection.run()
-    if result:
-        print(f"Selected mode: {result}")
-    else:
-        print("No mode selected")
+    result = ModeSelection().run()
+    print(f"Selected mode: {result}")
