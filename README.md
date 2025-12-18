@@ -15,7 +15,7 @@ Di tengah ritme hidup yang cepat, Py-Fighter hadir untuk membantu pengguna melep
 * **Menu Utama:** Tampilan navigasi bagi user untuk mulai bermain atau keluar.
 * **Selection System:** User dapat memilih karakter dan arena pertarungan yang diinginkan.
 * **Battle Mode 2D:** Mode pertarungan intens antar dua pemain di satu komputer.
-* **Mekanik Karakter:** Sistem yang mengatur sprite, pergerakan dasar (maju, mundur, lompat), animasi, serta variasi serangan dan bertahan.
+* **Mekanik Karakter:** Sistem yang mengatur sprite, pergerakan dasar (maju, mundur, lompat), animasi, serta variasi serangan.
 * **Health Bar System:** Visualisasi HP karakter secara real-time yang berkurang sesuai serangan yang diterima.
 
 ## 🛠️ Lingkungan Pengembangan
