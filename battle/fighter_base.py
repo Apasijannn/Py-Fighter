@@ -1,5 +1,4 @@
 """
-FILE: fighter_base.py
 DESKRIPSI: Class utama untuk karakter fighter dalam game
 DIGUNAKAN OLEH: battle_system.py (membuat instance Fighter)
 MENGGUNAKAN: pygame (untuk rendering dan input)
@@ -10,7 +9,6 @@ ALUR PROGRAM:
 3. Fighter.update() mengupdate animasi berdasarkan state
 4. Fighter.draw() menggambar karakter ke layar
 
-OOP CONCEPTS:
 - Encapsulation: Semua atribut karakter dibungkus dalam class
 - Method: move(), ai_move(), attack(), update(), draw()
 """

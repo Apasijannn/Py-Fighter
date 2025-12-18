@@ -22,7 +22,6 @@ import random
 import math
 import os
 
-# Base directory untuk assets (parent folder dari battle)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # === KONSTANTA ===
@@ -75,7 +74,6 @@ class ModeButton:
                     pass
 
     def update(self):
-        """Update logika internal tombol (animasi)"""
         if self.hovered:
             self.hover_alpha = min(255, self.hover_alpha + 20)
             self.scale = min(1.05, self.scale + 0.01)
@@ -84,7 +82,6 @@ class ModeButton:
             self.scale = max(1.0, self.scale - 0.01)
 
     def draw_glitch(self, surface, img, pos):
-        """Efek glitch khusus untuk mode AI"""
         if self.hovered and self.mode == "ai":
             glitch_amount = 10
             off_x = random.randint(-glitch_amount, glitch_amount)
@@ -123,7 +120,6 @@ class ModeButton:
             scaled_h
         )
 
-        # 1. Efek Glow (Outer)
         if self.hover_alpha > 0:
             for i in range(3):
                 margin = 4 + (i * 4)
@@ -132,7 +128,6 @@ class ModeButton:
                 pygame.draw.rect(glow_surf, glow_color, glow_surf.get_rect(), border_radius=20 + margin)
                 screen.blit(glow_surf, glow_surf.get_rect(center=scaled_rect.center))
 
-        # 2. Background & Border
         bg_alpha = 230 if self.hovered else 200
         button_surf = pygame.Surface((scaled_w, scaled_h), pygame.SRCALPHA)
         pygame.draw.rect(button_surf, (20, 40, 80, bg_alpha), button_surf.get_rect(), border_radius=20)
@@ -142,7 +137,6 @@ class ModeButton:
         thickness = 3 if self.hovered else 2
         pygame.draw.rect(screen, color, scaled_rect, thickness, border_radius=20)
 
-        # 3. Konten (Images vs Text)
         if self.images and len(self.images) >= 2:
             padding = 30
             vs_surf = font.render("vs", True, GOLD)
@@ -217,7 +211,6 @@ class ModeSelection:
         cx, cy = SCREEN_W // 2, SCREEN_H // 2  # Center screen
         self.time = 0 # Untuk animasi header
         
-        # Menggunakan koordinat dan ukuran dari kode keduamu yang lebih besar
         self.buttons = [
             ModeButton(cx - 275, 250, 550, 150, "PLAYER VS PLAYER", "pvp", 
                        image_paths=[os.path.join(BASE_DIR, 'assets/select_char/p1.png'), os.path.join(BASE_DIR, 'assets/select_char/p2.png')]),

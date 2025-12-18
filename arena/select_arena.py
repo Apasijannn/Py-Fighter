@@ -1,5 +1,4 @@
 """
-FILE: arena_selection.py
 DESKRIPSI: UI untuk memilih arena pertarungan (Battle Arena)
 DIGUNAKAN OLEH: menu.py atau game_manager.py
 MENGGUNAKAN: pygame (untuk UI)

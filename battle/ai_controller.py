@@ -10,7 +10,6 @@ ALUR PROGRAM:
 3. AI mengevaluasi situasi -> pilih state -> pilih action
 4. Action dikonversi ke input -> Fighter.ai_move() dipanggil
 
-OOP CONCEPTS:
 - Enum (State Pattern): AIState untuk representasi state FSM
 - Composition: AIController memiliki Fighter (bukan inheritance)
 - Encapsulation: Logic AI tersembunyi dari BattleSystem

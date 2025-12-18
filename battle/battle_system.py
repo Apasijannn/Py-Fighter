@@ -1,12 +1,6 @@
 """
-FILE: battle_system.py
-DESKRIPSI: System utama pertarungan - mengelola game loop dan fighters
+mengelola game loop dan fighters
 DIGUNAKAN OLEH: menu.py (memanggil BattleSystem untuk mulai battle)
-MENGGUNAKAN: 
-    - fighter_base.py (class Fighter)
-    - ai_controller.py (class AIController)
-    - assets/character/* (sprite karakter)
-    - assets/arena/* (background arena)
 
 ALUR PROGRAM:
 1. menu.py -> character selection -> arena selection -> BattleSystem()
@@ -18,7 +12,6 @@ ALUR PROGRAM:
 4. Jika ada pemenang, tampilkan victory screen
 5. ESC untuk kembali ke menu
 
-OOP CONCEPTS:
 - Composition: BattleSystem memiliki Fighter dan AIController
 - Factory Pattern: create_fighter() membuat Fighter dengan config
 - Encapsulation: Game loop tersembunyi dalam run()
@@ -29,7 +22,6 @@ import os
 from battle.fighter_base import Fighter       # Class karakter
 from battle.ai_controller import AIController # Class AI
 
-# Base directory untuk assets (parent folder dari battle)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SCREEN_W, SCREEN_H = 1400, 800  # Ukuran layar

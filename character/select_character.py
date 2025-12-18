@@ -1,5 +1,4 @@
 """
-FILE: character_selection.py
 DESKRIPSI: UI untuk memilih karakter pemain (P1 dan P2/AI)
 DIGUNAKAN OLEH: menu.py
 MENGGUNAKAN: pygame (untuk UI), random (untuk pemilihan AI)
@@ -11,7 +10,6 @@ ALUR PROGRAM:
 4. Jika mode 'pvp', Player 2 memilih setelah Player 1 selesai.
 5. Menekan SPACE setelah kedua pemain siap akan mengembalikan nama karakter yang dipilih.
 
-OOP CONCEPTS:
 - Encapsulation: Logika animasi dan status setiap karakter dibungkus dalam CharacterSlot.
 - Composition: CharacterSelection mengelola sekumpulan objek CharacterSlot.
 """
@@ -22,7 +20,6 @@ import math
 import random
 import os
 
-# Base directory untuk assets (parent folder dari character)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # === KONSTANTA ===
@@ -253,7 +250,6 @@ class CharacterSelection:
             self.screen.blit(inst, inst.get_rect(center=(SCREEN_WIDTH // 2, 140)))
             
     def draw_footer(self):
-        """Render panel instruksi kontrol di bagian bawah."""
         footer_surf = pygame.Surface((SCREEN_WIDTH, 70), pygame.SRCALPHA)
         footer_surf.fill((10, 25, 50, 180))
         self.screen.blit(footer_surf, (0, SCREEN_HEIGHT - 70))
@@ -267,7 +263,6 @@ class CharacterSelection:
             self.screen.blit(font.render(act, True, WHITE), (x + 60, SCREEN_HEIGHT - 25))
             
     def draw(self):
-        """Main draw function - Menggabungkan seluruh elemen visual ke layar."""
         if self.background: self.screen.blit(self.background, (0, 0))
         else: self.screen.fill((10, 20, 40))
         
@@ -285,7 +280,6 @@ class CharacterSelection:
         pygame.display.flip()
 
     def handle_click(self, mouse_pos):
-        """Mengelola logika seleksi karakter saat slot diklik."""
         for i, slot in enumerate(self.slots):
             if slot.get_rect().collidepoint(mouse_pos):
                 # Deselect P1
